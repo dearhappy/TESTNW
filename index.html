@@ -19,32 +19,31 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Hidden Container for JPG Generation - Optimized for A4 Wrapping */
+        /* A4 Container (794px wide) */
         #hidden-report-container {
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 794px; /* A4 Width */
-            /* min-height is optional, content will push it */
+            width: 794px;
             background: white;
-            padding: 40px;
+            padding: 30px;
             font-family: 'Arial', sans-serif;
             color: black;
             z-index: -1;
-            box-sizing: border-box; /* Ensure padding doesn't increase width */
+            box-sizing: border-box;
         }
         #hidden-report-container table { 
             width: 100%; 
             border-collapse: collapse; 
             margin-bottom: 20px; 
-            table-layout: fixed; /* CRITICAL: Forces table to stay within width */
+            table-layout: fixed; /* STRICT LAYOUT */
         }
         #hidden-report-container th, #hidden-report-container td { 
             border: 1px solid #333; 
-            padding: 6px; 
+            padding: 4px; 
             text-align: center; 
-            font-size: 11px; /* Slightly smaller font to fit more */
-            word-wrap: break-word; /* CRITICAL: Wraps long text */
+            font-size: 10px; 
+            word-wrap: break-word; /* Wrap text */
             overflow-wrap: break-word;
         }
         #hidden-report-container th { background-color: #eee; font-weight: bold; }
@@ -83,95 +82,70 @@
 
     <!-- MAIN APP CONTENT -->
     <div id="app-content" class="flex-1 flex flex-col hidden h-full">
-        <!-- Header -->
         <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center shrink-0">
             <div>
                 <h1 class="text-lg font-bold">Welcome, <span id="display-name">Supervisor</span></h1>
                 <p class="text-xs opacity-80" id="header-date">Loading date...</p>
             </div>
-            <button onclick="logout()" class="text-white hover:text-blue-200">
-                <i class="fas fa-sign-out-alt fa-lg"></i>
-            </button>
+            <button onclick="logout()" class="text-white hover:text-blue-200"><i class="fas fa-sign-out-alt fa-lg"></i></button>
         </header>
 
-        <!-- Tabs -->
         <div class="bg-white border-b flex shrink-0">
             <button onclick="switchTab('checkin')" id="tab-checkin" class="flex-1 py-3 text-center border-b-2 border-blue-600 text-blue-600 font-medium">Check-In</button>
             <button onclick="switchTab('checkout')" id="tab-checkout" class="flex-1 py-3 text-center border-b-2 border-transparent text-gray-500 font-medium">Check-Out</button>
         </div>
 
-        <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto bg-gray-50 p-4 relative" id="main-scroll">
             
-            <!-- CARD 1: CHECK-IN -->
+            <!-- CHECK-IN -->
             <div id="view-checkin" class="space-y-4 max-w-lg mx-auto pb-20">
                 <div class="bg-white p-4 rounded-lg shadow space-y-4">
                     <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Daily Check-In</h2>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Date</label>
-                        <input type="date" id="ci-date" class="w-full mt-1 p-2 border rounded-md">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Area</label>
-                        <select id="ci-area" class="w-full mt-1 p-2 border rounded-md bg-white">
-                            <option value="">Select Area</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Department</label>
-                        <select id="ci-dept" class="w-full mt-1 p-2 border rounded-md bg-white">
-                            <option value="">Select Department</option>
-                        </select>
-                    </div>
-
+                    <div><label class="block text-sm font-medium text-gray-600">Date</label><input type="date" id="ci-date" class="w-full mt-1 p-2 border rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-gray-600">Area</label><select id="ci-area" class="w-full mt-1 p-2 border rounded-md bg-white"><option value="">Select Area</option></select></div>
+                    <div><label class="block text-sm font-medium text-gray-600">Department</label><select id="ci-dept" class="w-full mt-1 p-2 border rounded-md bg-white"><option value="">Select Department</option></select></div>
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Select Workers</label>
-                        <input type="text" id="worker-search" placeholder="Search name or ID..." class="w-full p-2 border rounded-t-md text-sm mb-0" onkeyup="filterWorkers()">
+                        <input type="text" id="worker-search" placeholder="Search..." class="w-full p-2 border rounded-t-md text-sm mb-0" onkeyup="filterWorkers()">
                         <div id="worker-list" class="h-48 overflow-y-auto border border-t-0 rounded-b-md bg-white p-2 space-y-1">
                             <div class="text-center text-gray-400 text-sm mt-4">Loading workers...</div>
                         </div>
-                        <div class="text-right text-xs text-gray-500 mt-1">
-                            Selected: <span id="selected-count" class="font-bold">0</span>
-                        </div>
+                        <div class="text-right text-xs text-gray-500 mt-1">Selected: <span id="selected-count" class="font-bold">0</span></div>
                     </div>
-
-                    <button onclick="submitCheckIn()" id="btn-ci-submit" class="w-full bg-green-600 text-white py-3 rounded-md font-semibold shadow hover:bg-green-700 transition">
-                        Submit Check-In
-                    </button>
+                    <button onclick="submitCheckIn()" id="btn-ci-submit" class="w-full bg-green-600 text-white py-3 rounded-md font-semibold shadow hover:bg-green-700 transition">Submit Check-In</button>
                 </div>
             </div>
 
-            <!-- CARD 2: CHECK-OUT -->
+            <!-- CHECK-OUT -->
             <div id="view-checkout" class="hidden space-y-4 max-w-lg mx-auto pb-24">
+                <!-- Date Selector for Backdating -->
+                <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between">
+                    <label class="text-sm font-bold text-gray-600">Report Date:</label>
+                    <input type="date" id="co-date-display" class="border rounded p-1 text-sm font-semibold" onchange="handleCheckOutDateChange()">
+                </div>
+
                 <div class="bg-white p-4 rounded-lg shadow">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h2 class="text-lg font-semibold text-gray-700">Work Logs</h2>
-                        <button onclick="openEntryModal()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm shadow hover:bg-blue-700">
-                            <i class="fas fa-plus mr-1"></i> Add Entry
-                        </button>
+                        <button onclick="openEntryModal()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm shadow hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Add</button>
                     </div>
-
                     <div id="entry-list" class="space-y-3">
-                        <div class="text-center text-gray-400 py-8 text-sm">No entries added yet. Tap "Add Entry".</div>
+                        <div class="text-center text-gray-400 py-8 text-sm">Loading logs...</div>
                     </div>
                 </div>
 
-                <!-- Reference: Today's Checked-in Workers -->
                 <div class="bg-white p-4 rounded-lg shadow opacity-90">
                     <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">Manpower Reference</h3>
                     <div id="ref-worker-list" class="text-sm text-gray-600 space-y-1 pl-2 border-l-4 border-blue-200">
-                        <p class="italic text-gray-400">Loading today's check-ins...</p>
+                        <p class="italic text-gray-400">Select date to load.</p>
                     </div>
                 </div>
+                
+                <!-- Hidden inputs to store fetched context -->
+                <input type="hidden" id="fetched-dept" value="">
 
-                <button onclick="submitCheckOut()" id="btn-co-final" class="w-full bg-indigo-600 text-white py-3 rounded-md font-semibold shadow hover:bg-indigo-700 transition hidden">
-                    Finalize & Generate Report
-                </button>
+                <button onclick="submitCheckOut()" id="btn-co-final" class="w-full bg-indigo-600 text-white py-3 rounded-md font-semibold shadow hover:bg-indigo-700 transition hidden">Finalize & Generate Report</button>
             </div>
-
         </div>
     </div>
 
@@ -185,109 +159,48 @@
             
             <div class="space-y-3 pb-4">
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">Date</label>
-                        <input type="date" id="co-date" class="w-full border rounded p-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">Area</label>
-                        <select id="co-area" class="w-full border rounded p-2 text-sm bg-white"></select>
-                    </div>
+                    <div><label class="text-xs font-bold text-gray-500">Date</label><input type="date" id="co-date" class="w-full border rounded p-2 text-sm bg-gray-100" readonly></div>
+                    <div><label class="text-xs font-bold text-gray-500">Area</label><select id="co-area" class="w-full border rounded p-2 text-sm bg-white"></select></div>
                 </div>
-
-                <div>
-                    <label class="text-xs font-bold text-gray-500">Job Type</label>
-                    <select id="co-job" class="w-full border rounded p-2 text-sm bg-white">
-                        <option>Erection</option>
-                        <option>Dismantling</option>
-                        <option>Materials Shifting</option>
-                        <option>Unloading</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-xs font-bold text-gray-500">Work Location</label>
-                    <input type="text" id="co-location" class="w-full border rounded p-2 text-sm" placeholder="e.g. Tank 4">
-                </div>
-
+                
+                <!-- NEW FIELDS -->
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">Scaffold Type</label>
-                        <select id="co-scaf-type" class="w-full border rounded p-2 text-sm bg-white">
-                            <option>Normal</option>
-                            <option>Suspended</option>
-                            <option>Designed</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">Elevation</label>
-                        <select id="co-elev" class="w-full border rounded p-2 text-sm bg-white">
-                            <option>0-10</option>
-                            <option>10-20</option>
-                            <option>20-30</option>
-                            <option>30-40</option>
-                            <option>40-50</option>
-                            <option>0-45</option>
-                        </select>
-                    </div>
+                     <div>
+                         <label class="text-xs font-bold text-gray-500">Department (Auto)</label>
+                         <input type="text" id="co-dept" class="w-full border rounded p-2 text-sm bg-gray-100" readonly placeholder="No Check-In Data">
+                     </div>
+                     <div>
+                         <label class="text-xs font-bold text-gray-500">Tag No</label>
+                         <input type="text" id="co-tag" class="w-full border rounded p-2 text-sm" placeholder="e.g. T-101">
+                     </div>
                 </div>
 
+                <div><label class="text-xs font-bold text-gray-500">Job Type</label><select id="co-job" class="w-full border rounded p-2 text-sm bg-white"><option>Erection</option><option>Dismantling</option><option>Materials Shifting</option><option>Unloading</option></select></div>
+                <div><label class="text-xs font-bold text-gray-500">Work Location</label><input type="text" id="co-location" class="w-full border rounded p-2 text-sm" placeholder="e.g. Tank 4"></div>
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">Scaffolders (Auto)</label>
-                        <input type="number" id="co-scaf-count" class="w-full border rounded p-2 text-sm bg-gray-50" readonly>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">Helpers (Auto)</label>
-                        <input type="number" id="co-help-count" class="w-full border rounded p-2 text-sm bg-gray-50" readonly>
-                    </div>
+                    <div><label class="text-xs font-bold text-gray-500">Scaffold Type</label><select id="co-scaf-type" class="w-full border rounded p-2 text-sm bg-white"><option>Normal</option><option>Suspended</option><option>Designed</option></select></div>
+                    <div><label class="text-xs font-bold text-gray-500">Elevation</label><select id="co-elev" class="w-full border rounded p-2 text-sm bg-white"><option>0-10</option><option>10-20</option><option>20-30</option><option>30-40</option><option>40-50</option><option>0-45</option></select></div>
                 </div>
-
-                <div>
-                    <label class="text-xs font-bold text-gray-500">AMNS Eng Name</label>
-                    <input type="text" id="co-eng" class="w-full border rounded p-2 text-sm">
-                </div>
-
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">Start Time</label>
-                        <input type="time" id="co-start" class="w-full border rounded p-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500">End Time</label>
-                        <input type="time" id="co-end" class="w-full border rounded p-2 text-sm">
-                    </div>
+                    <div><label class="text-xs font-bold text-gray-500">Scaffolders</label><input type="number" id="co-scaf-count" class="w-full border rounded p-2 text-sm bg-gray-50" readonly></div>
+                    <div><label class="text-xs font-bold text-gray-500">Helpers</label><input type="number" id="co-help-count" class="w-full border rounded p-2 text-sm bg-gray-50" readonly></div>
                 </div>
-
-                <!-- Dimensions & Volume -->
+                <div><label class="text-xs font-bold text-gray-500">AMNS Eng Name</label><input type="text" id="co-eng" class="w-full border rounded p-2 text-sm"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="text-xs font-bold text-gray-500">Start Time</label><input type="time" id="co-start" class="w-full border rounded p-2 text-sm"></div>
+                    <div><label class="text-xs font-bold text-gray-500">End Time</label><input type="time" id="co-end" class="w-full border rounded p-2 text-sm"></div>
+                </div>
                 <div class="bg-gray-50 p-2 rounded border">
                     <div class="grid grid-cols-4 gap-2 mb-2">
-                        <div>
-                            <label class="text-[10px] font-bold text-center block">L</label>
-                            <input type="number" id="co-l" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-center block">W</label>
-                            <input type="number" id="co-w" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-center block">H</label>
-                            <input type="number" id="co-h" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-center block">Nos</label>
-                            <input type="number" id="co-nos" class="w-full border p-1 text-sm text-center vol-calc" placeholder="1">
-                        </div>
+                        <div><label class="text-[10px] font-bold text-center block">L</label><input type="number" id="co-l" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0"></div>
+                        <div><label class="text-[10px] font-bold text-center block">W</label><input type="number" id="co-w" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0"></div>
+                        <div><label class="text-[10px] font-bold text-center block">H</label><input type="number" id="co-h" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0"></div>
+                        <div><label class="text-[10px] font-bold text-center block">Nos</label><input type="number" id="co-nos" class="w-full border p-1 text-sm text-center vol-calc" placeholder="1"></div>
                     </div>
-                    <div class="text-right text-sm font-bold text-blue-600">
-                        Vol: <span id="co-vol">0.00</span> CuM
-                    </div>
+                    <div class="text-right text-sm font-bold text-blue-600">Vol: <span id="co-vol">0.00</span> CuM</div>
                 </div>
             </div>
-
-            <div class="mt-2">
-                <button onclick="saveEntry()" class="w-full bg-blue-600 text-white py-3 rounded font-bold shadow">Save Entry</button>
-            </div>
+            <div class="mt-2"><button onclick="saveEntry()" class="w-full bg-blue-600 text-white py-3 rounded font-bold shadow">Save Entry</button></div>
         </div>
     </div>
 
@@ -299,21 +212,14 @@
                 <h2 class="text-xl font-semibold">Generating Report...</h2>
                 <p class="text-gray-500">Creating PDF and Image</p>
             </div>
-            
             <div id="report-actions" class="hidden space-y-4">
                 <i class="fas fa-check-circle text-5xl text-green-500"></i>
                 <h2 class="text-xl font-bold">Success!</h2>
                 <p class="text-xs text-gray-500">Downloads should start automatically.</p>
-                
                 <div class="grid grid-cols-1 gap-3">
-                    <a id="wa-share-btn" href="#" class="block w-full bg-green-500 text-white py-3 rounded font-bold shadow hover:bg-green-600">
-                        <i class="fab fa-whatsapp mr-2"></i> Share via WhatsApp
-                    </a>
-                    <a id="pdf-dl-btn" href="#" download="report.pdf" class="block w-full bg-gray-600 text-white py-2 rounded font-medium text-sm">
-                        Download PDF Manually
-                    </a>
+                    <a id="wa-share-btn" href="#" class="block w-full bg-green-500 text-white py-3 rounded font-bold shadow hover:bg-green-600"><i class="fab fa-whatsapp mr-2"></i> Share via WhatsApp</a>
+                    <a id="pdf-dl-btn" href="#" download="report.pdf" class="block w-full bg-gray-600 text-white py-2 rounded font-medium text-sm">Download PDF Manually</a>
                 </div>
-                
                 <button onclick="resetApp()" class="text-gray-500 underline text-sm mt-4">Close & Return to Login</button>
             </div>
         </div>
@@ -323,67 +229,54 @@
     <div id="hidden-report-container">
         <h2>Daily Work Report</h2>
         <div class="header-info" id="rpt-header-info"></div>
-        
         <div class="section-title">Job Entries</div>
         <table id="rpt-job-table">
             <colgroup>
-                <col style="width: 12%;">
-                <col style="width: 12%;">
-                <col style="width: 25%;"> <!-- Work Location gets more space -->
-                <col style="width: 10%;">
-                <col style="width: 8%;">
-                <col style="width: 5%;">
-                <col style="width: 5%;">
-                <col style="width: 11%;">
-                <col style="width: 12%;">
+                <col style="width: 8%;">  <!-- Area -->
+                <col style="width: 8%;">  <!-- Dept -->
+                <col style="width: 8%;">  <!-- Tag -->
+                <col style="width: 10%;"> <!-- Job -->
+                <col style="width: 14%;"> <!-- Loc -->
+                <col style="width: 8%;">  <!-- Type -->
+                <col style="width: 6%;">  <!-- Elev -->
+                <col style="width: 5%;">  <!-- Scf -->
+                <col style="width: 5%;">  <!-- Hlp -->
+                <col style="width: 8%;">  <!-- Dur -->
+                <col style="width: 8%;">  <!-- Vol -->
+                <col style="width: 12%;"> <!-- Eng -->
             </colgroup>
             <thead>
                 <tr>
-                    <th>Area</th><th>Job</th><th>Loc</th><th>Type</th><th>Elev</th>
-                    <th>Scf</th><th>Hlp</th><th>Duration</th><th>Vol (CuM)</th>
+                    <th>Area</th><th>Dept</th><th>Tag No</th><th>Job</th><th>Loc</th><th>Type</th><th>Elev</th>
+                    <th>Scf</th><th>Hlp</th><th>Dur</th><th>Vol</th><th>Eng</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
-
         <div class="section-title">Manpower Details (Check-In)</div>
         <table id="rpt-manpower-table">
-            <colgroup>
-                <col style="width: 10%;">
-                <col style="width: 40%;">
-                <col style="width: 30%;">
-                <col style="width: 20%;">
-            </colgroup>
+            <colgroup><col style="width: 10%;"><col style="width: 40%;"><col style="width: 30%;"><col style="width: 20%;"></colgroup>
             <thead><tr><th>No.</th><th>Name</th><th>Designation</th><th>Emp Code</th></tr></thead>
             <tbody></tbody>
         </table>
-        
         <p id="rpt-totals" style="font-weight:bold;"></p>
-        
         <br/><br/><br/>
         <table style="border:none;">
             <tr style="border:none;">
-                <td style="border:none; text-align:left; vertical-align:bottom;">
-                    _________________________<br/>
-                    <span id="rpt-sign-sup"></span><br/>(Supervisor)
-                </td>
-                <td style="border:none; text-align:right; vertical-align:bottom;">
-                    _________________________<br/>
-                    <span id="rpt-sign-eng"></span><br/>(AMNS ENGINEER NAME SIGN)
-                </td>
+                <td style="border:none; text-align:left; vertical-align:bottom;">_________________________<br/><span id="rpt-sign-sup"></span><br/>(Supervisor)</td>
+                <td style="border:none; text-align:right; vertical-align:bottom;">_________________________<br/><span id="rpt-sign-eng"></span><br/>(AMNS ENGINEER NAME SIGN)</td>
             </tr>
         </table>
     </div>
 
     <script>
-        // *** CONFIGURATION ***
+        // CONFIG
         const API_URL = "https://script.google.com/macros/s/AKfycbxQsIW3F21Xi6Tcgaygl4yOeexQuMciq6r1UWGV3VgO4dev-xwwDvR2Fb4d2SgCE5979A/exec";
 
-        // *** API HELPER ***
+        // API HELPER
         async function apiRequest(action, data = {}, method = 'GET') {
             let url = `${API_URL}?action=${action}`;
             let options = { method: method };
-            
             if (method === 'POST') {
                 const payload = { ...data, action: action };
                 options.body = JSON.stringify(payload);
@@ -391,27 +284,26 @@
                 const params = new URLSearchParams(data).toString();
                 if(params) url += `&${params}`;
             }
-
             const response = await fetch(url, options);
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
         }
 
-        // --- STATE ---
+        // STATE
         let currentUser = null;
         let masterData = { workers: [], areas: [], departments: [] };
         let entries = []; 
         let checkInWorkers = []; 
 
-        // --- INIT ---
+        // INIT
         window.onload = function() {
             document.getElementById('header-date').innerText = new Date().toDateString();
             document.getElementById('ci-date').valueAsDate = new Date();
-            document.getElementById('co-date').valueAsDate = new Date();
+            // Default checkout date to today
+            document.getElementById('co-date-display').valueAsDate = new Date();
             
             const calcInputs = document.querySelectorAll('.vol-calc');
             calcInputs.forEach(input => input.addEventListener('input', calculateVolume));
-            
             loadUsernames();
         };
         
@@ -420,27 +312,18 @@
                 const users = await apiRequest('getUsernames');
                 const select = document.getElementById('login-user');
                 select.innerHTML = '<option value="">Select Username</option>';
-                
                 if (users.length === 0) {
                      const opt = document.createElement('option');
-                     opt.value = "admin";
-                     opt.innerText = "admin (Default)";
-                     select.appendChild(opt);
+                     opt.value = "admin"; opt.innerText = "admin (Default)"; select.appendChild(opt);
                 } else {
-                    users.forEach(u => {
-                        const opt = document.createElement('option');
-                        opt.value = u;
-                        opt.innerText = u;
-                        select.appendChild(opt);
-                    });
+                    users.forEach(u => { const opt = document.createElement('option'); opt.value = u; opt.innerText = u; select.appendChild(opt); });
                 }
             } catch (e) {
                 console.error("Failed to load users", e);
-                document.getElementById('login-user').innerHTML = '<option value="">Error loading users</option>';
             }
         }
 
-        // --- AUTH ---
+        // AUTH
         async function handleLogin() {
             const u = document.getElementById('login-user').value;
             const p = document.getElementById('login-pass').value;
@@ -448,130 +331,85 @@
             const loadingMsg = document.getElementById('loading-msg');
             
             if(!u || !p) return;
-            
-            btn.innerText = 'Verifying...';
-            btn.disabled = true;
-            loadingMsg.classList.remove('hidden');
+            btn.innerText = 'Verifying...'; btn.disabled = true; loadingMsg.classList.remove('hidden');
 
             try {
                 const res = await apiRequest('login', { username: u, passcode: p }, 'POST');
-                
                 if(res.success) {
                     currentUser = res.name;
                     document.getElementById('display-name').innerText = currentUser;
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-content').classList.remove('hidden');
                     loadMasterData();
-                } else {
-                    throw new Error('Invalid');
-                }
+                } else { throw new Error('Invalid'); }
             } catch (e) {
-                console.error(e);
                 document.getElementById('login-error').classList.remove('hidden');
-                btn.innerText = 'Sign In';
-                btn.disabled = false;
-                loadingMsg.innerText = "Connection Failed. Check URL or Internet.";
+                btn.innerText = 'Sign In'; btn.disabled = false;
             }
         }
 
         function logout() { location.reload(); }
 
-        // --- DATA LOADING ---
         async function loadMasterData() {
             try {
                 const data = await apiRequest('getMasterData');
                 masterData = data;
-                
                 const populate = (id, list) => {
                     const el = document.getElementById(id);
                     el.innerHTML = '<option value="">Select</option>';
-                    list.forEach(item => {
-                        let opt = document.createElement('option');
-                        opt.value = item;
-                        opt.innerText = item;
-                        el.appendChild(opt);
-                    });
+                    list.forEach(item => { const opt = document.createElement('option'); opt.value = item; opt.innerText = item; el.appendChild(opt); });
                 };
-                
                 populate('ci-area', data.areas);
                 populate('ci-dept', data.departments);
                 populate('co-area', data.areas);
                 renderWorkerList(data.workers);
-            } catch (e) {
-                alert("Failed to load Master Data.");
-            }
+            } catch (e) { alert("Failed to load Master Data."); }
         }
 
-        // --- WORKER UI ---
+        // WORKER UI
         function renderWorkerList(list) {
             const container = document.getElementById('worker-list');
             container.innerHTML = '';
             list.forEach((w, i) => {
                 const div = document.createElement('div');
                 div.className = 'flex items-center p-2 hover:bg-gray-100 rounded cursor-pointer worker-item';
-                div.innerHTML = `
-                    <input type="checkbox" id="w-${i}" class="mr-3 h-4 w-4 text-blue-600 worker-chk" value="${w.sl}" data-idx="${i}">
-                    <div><div class="font-medium text-sm text-gray-800">${w.name}</div><div class="text-xs text-gray-500">${w.designation} | ${w.empCode}</div></div>
-                `;
+                div.innerHTML = `<input type="checkbox" id="w-${i}" class="mr-3 h-4 w-4 text-blue-600 worker-chk" value="${w.sl}" data-idx="${i}">
+                    <div><div class="font-medium text-sm text-gray-800">${w.name}</div><div class="text-xs text-gray-500">${w.designation} | ${w.empCode}</div></div>`;
                 div.onclick = (e) => { if (e.target.type !== 'checkbox') { const chk = div.querySelector('input'); chk.checked = !chk.checked; updateSelectedCount(); }};
                 container.appendChild(div);
             });
         }
-
         function filterWorkers() {
             const term = document.getElementById('worker-search').value.toLowerCase();
             const items = document.querySelectorAll('.worker-item');
             items.forEach(item => { item.style.display = item.innerText.toLowerCase().includes(term) ? 'flex' : 'none'; });
         }
+        function updateSelectedCount() { document.getElementById('selected-count').innerText = document.querySelectorAll('.worker-chk:checked').length; }
 
-        function updateSelectedCount() {
-            document.getElementById('selected-count').innerText = document.querySelectorAll('.worker-chk:checked').length;
-        }
-
-        // --- CHECK-IN ---
+        // CHECK-IN
         async function submitCheckIn() {
             const date = document.getElementById('ci-date').value;
             const area = document.getElementById('ci-area').value;
             const dept = document.getElementById('ci-dept').value;
             const chks = document.querySelectorAll('.worker-chk:checked');
-            
             if(!date || !area || !dept || chks.length === 0) { alert("Please complete all fields."); return; }
 
             const btn = document.getElementById('btn-ci-submit');
-            btn.innerText = 'Submitting...';
-            btn.disabled = true;
+            btn.innerText = 'Submitting...'; btn.disabled = true;
 
             const selectedWorkers = Array.from(chks).map(c => masterData.workers[c.dataset.idx]);
             const payload = { date, supervisor: currentUser, area, department: dept, workers: selectedWorkers };
 
             try {
                 await apiRequest('submitCheckIn', payload, 'POST');
-                btn.innerText = 'Submit Check-In';
-                btn.disabled = false;
-                
+                btn.innerText = 'Submit Check-In'; btn.disabled = false;
                 const summary = `*Date:* ${date}\n*Supervisor:* ${currentUser}\n*Team:*\n` + selectedWorkers.map(w => `- ${w.name} (${w.designation})`).join('\n');
-                
-                const ta = document.createElement('textarea');
-                ta.value = summary;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-
-                if(confirm("Saved! Summary copied. Open WhatsApp?")) {
-                    window.open(`https://wa.me/?text=${encodeURIComponent(summary)}`, '_blank');
-                }
-                
-                checkInWorkers = selectedWorkers;
-                updateRefList();
-            } catch(e) {
-                alert("Submission Failed.");
-                btn.innerText = 'Submit Check-In';
-                btn.disabled = false;
-            }
+                const ta = document.createElement('textarea'); ta.value = summary; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                if(confirm("Saved! Summary copied. Open WhatsApp?")) { window.open(`https://wa.me/?text=${encodeURIComponent(summary)}`, '_blank'); }
+            } catch(e) { alert("Submission Failed."); btn.innerText = 'Submit Check-In'; btn.disabled = false; }
         }
 
-        // --- NAV ---
+        // NAVIGATION
         function switchTab(tab) {
             document.getElementById('view-checkin').classList.add('hidden');
             document.getElementById('view-checkout').classList.add('hidden');
@@ -588,47 +426,61 @@
                 document.getElementById('view-checkout').classList.remove('hidden');
                 document.getElementById('tab-checkout').classList.add('text-blue-600', 'border-blue-600');
                 document.getElementById('tab-checkout').classList.remove('text-gray-500', 'border-transparent');
-                
-                if(checkInWorkers.length === 0) fetchTodayCheckIns();
-                else updateRefList();
+                handleCheckOutDateChange(); // Load data for default date immediately
             }
         }
 
-        async function fetchTodayCheckIns() {
-            const date = document.getElementById('ci-date').value;
+        // CHECK-OUT DATE LOGIC
+        async function handleCheckOutDateChange() {
+            const date = document.getElementById('co-date-display').value;
             const refList = document.getElementById('ref-worker-list');
-            refList.innerHTML = '<p class="italic text-gray-400">Syncing...</p>';
+            const entryList = document.getElementById('entry-list');
+            
+            refList.innerHTML = '<p class="italic text-gray-400">Syncing data...</p>';
+            entryList.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">Syncing logs...</div>';
             
             try {
-                const data = await apiRequest('getSupervisorCheckIns', { date, supervisor: currentUser });
-                checkInWorkers = data;
-                updateRefList();
+                // Fetch ALL data for this date
+                const data = await apiRequest('getDailyData', { date, supervisor: currentUser });
+                
+                // 1. Update Check-In (Manpower) reference
+                checkInWorkers = data.checkIns;
+                document.getElementById('fetched-dept').value = data.department || ""; // Store fetched dept
+                
+                if(checkInWorkers.length === 0) {
+                    refList.innerHTML = '<p class="italic text-gray-400">No Check-Ins found for this date.</p>';
+                } else {
+                    refList.innerHTML = checkInWorkers.map(w => `<div class="flex justify-between"><span>${w.name}</span> <span class="text-xs bg-gray-200 px-1 rounded">${w.designation}</span></div>`).join('');
+                }
+
+                // 2. Update Entries (Previous Logs)
+                entries = data.logs || [];
+                renderEntryList();
+                
             } catch(e) {
+                console.error(e);
                 refList.innerHTML = '<p class="text-red-400">Sync failed.</p>';
+                entryList.innerHTML = '<p class="text-red-400">Sync failed.</p>';
             }
         }
 
-        function updateRefList() {
-            const refList = document.getElementById('ref-worker-list');
-            if(checkInWorkers.length === 0) { refList.innerHTML = '<p class="italic text-gray-400">No Check-Ins found for today.</p>'; return; }
-            refList.innerHTML = checkInWorkers.map(w => `<div class="flex justify-between"><span>${w.name}</span> <span class="text-xs bg-gray-200 px-1 rounded">${w.designation}</span></div>`).join('');
-        }
-
-        // --- CHECK-OUT ---
-        function openEntryModal() { 
-            document.getElementById('entry-modal').classList.remove('hidden');
-            // Auto-fill inputs just for visual confirmation, but totals are calculated from CheckIn list for reports
-            let scafCount = 0;
-            let helpCount = 0;
-            if (checkInWorkers && checkInWorkers.length > 0) {
-                checkInWorkers.forEach(w => {
-                    const des = (w.designation || "").toLowerCase();
-                    if (des.includes("scaffolder")) scafCount++;
-                    if (des.includes("helper")) helpCount++;
-                });
-            }
+        // CHECK-OUT MODAL
+        function openEntryModal() {
+            // Set modal date to selected report date
+            document.getElementById('co-date').value = document.getElementById('co-date-display').value;
+            // Auto-fill Department
+            document.getElementById('co-dept').value = document.getElementById('fetched-dept').value;
+            // Count Workers
+            let scafCount = 0, helpCount = 0;
+            checkInWorkers.forEach(w => {
+                const des = (w.designation || "").toLowerCase();
+                if (des.includes("scaffolder")) scafCount++;
+                if (des.includes("helper")) helpCount++;
+            });
             document.getElementById('co-scaf-count').value = scafCount;
             document.getElementById('co-help-count').value = helpCount;
+            
+            document.getElementById('entry-modal').classList.remove('hidden');
         }
 
         function closeEntryModal() { document.getElementById('entry-modal').classList.add('hidden'); }
@@ -645,6 +497,8 @@
             entries.push({
                 date: document.getElementById('co-date').value,
                 area: document.getElementById('co-area').value,
+                department: document.getElementById('co-dept').value, // Saved
+                tagNo: document.getElementById('co-tag').value,       // Saved
                 jobType: document.getElementById('co-job').value,
                 workLocation: document.getElementById('co-location').value,
                 scaffoldType: document.getElementById('co-scaf-type').value,
@@ -674,14 +528,15 @@
                     <button onclick="removeEntry(${i})" class="absolute top-2 right-2 text-red-400 font-bold">&times;</button>
                     <div class="font-bold text-blue-800">${e.jobType} @ ${e.workLocation}</div>
                     <div class="grid grid-cols-2 gap-x-4 mt-1 text-gray-600 text-xs">
-                        <div>Area: ${e.area}</div><div>Elev: ${e.elevation}</div><div>Vol: ${e.vol}m³</div><div>Time: ${e.startTime}-${e.endTime}</div>
+                        <div>Tag: ${e.tagNo || '-'}</div><div>Vol: ${e.vol}m³</div>
+                        <div>Dept: ${e.department || '-'}</div><div>Elev: ${e.elevation}</div>
                     </div>
                 </div>
             `).join('');
         }
         function removeEntry(idx) { entries.splice(idx, 1); renderEntryList(); }
 
-        // --- SUBMIT ---
+        // SUBMIT & REPORT
         async function submitCheckOut() {
             if(entries.length === 0) return;
             document.getElementById('report-modal').classList.remove('hidden');
@@ -689,102 +544,61 @@
             document.getElementById('report-actions').classList.add('hidden');
 
             const payload = { supervisor: currentUser, entries: entries };
-            
             try {
-                // 1. Send data to backend for PDF generation and saving
                 const res = await apiRequest('submitCheckOut', payload, 'POST');
-                
                 if(res.success) {
                     document.getElementById('report-spinner').classList.add('hidden');
                     document.getElementById('report-actions').classList.remove('hidden');
                     
-                    // 2. Prepare PDF Link
                     const link = document.getElementById('pdf-dl-btn');
                     link.href = "data:application/pdf;base64," + res.reportUrl;
                     
-                    // 3. Render High-Res JPG Locally (Same layout as PDF)
                     renderHiddenReport(payload);
-                    
-                    // 4. Capture JPG
                     html2canvas(document.getElementById('hidden-report-container'), { scale: 2 }).then(canvas => {
                         const jpgUrl = canvas.toDataURL('image/jpeg', 0.9);
-                        
-                        // Set WA Link
                         const text = `*Daily Report*\nSupervisor: ${currentUser}\nEntries: ${entries.length}\n(Files Attached)`;
                         document.getElementById('wa-share-btn').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
-
-                        // Auto-Download PDF
                         setTimeout(() => link.click(), 500);
-
-                        // Auto-Download JPG
                         setTimeout(() => {
                             const jpgLink = document.createElement('a');
-                            jpgLink.href = jpgUrl;
-                            jpgLink.download = `Report_${currentUser}_${Date.now()}.jpg`;
-                            document.body.appendChild(jpgLink);
-                            jpgLink.click();
-                            document.body.removeChild(jpgLink);
+                            jpgLink.href = jpgUrl; jpgLink.download = `Report_${currentUser}_${Date.now()}.jpg`;
+                            document.body.appendChild(jpgLink); jpgLink.click(); document.body.removeChild(jpgLink);
                         }, 1500);
                     });
                 }
-            } catch(e) {
-                console.error(e);
-                alert("Report Generation Failed.");
-                document.getElementById('report-modal').classList.add('hidden');
-            }
+            } catch(e) { alert("Report Generation Failed."); document.getElementById('report-modal').classList.add('hidden'); }
         }
         
         function renderHiddenReport(payload) {
-            // Header
-            document.getElementById('rpt-header-info').innerHTML = `
-                <strong>Date:</strong> ${payload.entries[0].date} &nbsp;|&nbsp; 
-                <strong>Supervisor:</strong> ${payload.supervisor} &nbsp;|&nbsp; 
-                <strong>Engineer:</strong> ${payload.entries[0].amnsEngName}
-            `;
+            document.getElementById('rpt-header-info').innerHTML = `<strong>Date:</strong> ${payload.entries[0].date} &nbsp;|&nbsp; <strong>Supervisor:</strong> ${payload.supervisor} &nbsp;|&nbsp; <strong>Engineer:</strong> ${payload.entries[0].amnsEngName}`;
             
-            // Job Table
             const jobBody = document.querySelector('#rpt-job-table tbody');
             jobBody.innerHTML = '';
             payload.entries.forEach(e => {
-                // Duration
                 let dur = "-";
                 if (e.startTime && e.endTime) {
                     const s = new Date("2000-01-01 " + e.startTime);
                     const end = new Date("2000-01-01 " + e.endTime);
-                    let diff = end - s;
-                    if(diff < 0) diff += 86400000;
-                    dur = (diff / 3600000).toFixed(1) + " Hrs";
+                    let diff = end - s; if(diff < 0) diff += 86400000;
+                    dur = (diff / 3600000).toFixed(1) + "h";
                 }
-                
-                const row = `<tr>
-                    <td>${e.area}</td><td>${e.jobType}</td><td>${e.workLocation}</td>
-                    <td>${e.scaffoldType}</td><td>${e.elevation}</td>
-                    <td>${e.scaffolders}</td><td>${e.helpers}</td>
-                    <td>${dur}</td><td>${e.vol}</td>
-                </tr>`;
-                jobBody.insertAdjacentHTML('beforeend', row);
+                jobBody.insertAdjacentHTML('beforeend', `<tr>
+                    <td>${e.area}</td><td>${e.department || '-'}</td><td>${e.tagNo || '-'}</td><td>${e.jobType}</td><td>${e.workLocation}</td>
+                    <td>${e.scaffoldType}</td><td>${e.elevation}</td><td>${e.scaffolders}</td><td>${e.helpers}</td><td>${dur}</td><td>${e.vol}</td><td>${e.amnsEngName}</td>
+                </tr>`);
             });
             
-            // Manpower Table (Using Check-In Data)
             const manBody = document.querySelector('#rpt-manpower-table tbody');
             manBody.innerHTML = '';
-            
-            let scafCount = 0;
-            let helpCount = 0;
-            
+            let scafCount = 0, helpCount = 0;
             checkInWorkers.forEach((w, i) => {
                 const des = (w.designation || "").toLowerCase();
                 if(des.includes('scaffolder')) scafCount++;
                 if(des.includes('helper')) helpCount++;
-                
-                const row = `<tr><td>${i+1}</td><td>${w.name}</td><td>${w.designation}</td><td>${w.empCode}</td></tr>`;
-                manBody.insertAdjacentHTML('beforeend', row);
+                manBody.insertAdjacentHTML('beforeend', `<tr><td>${i+1}</td><td>${w.name}</td><td>${w.designation}</td><td>${w.empCode}</td></tr>`);
             });
             
-            // Totals
             document.getElementById('rpt-totals').innerText = `Totals (Attendance): Scaffolders: ${scafCount} | Helpers: ${helpCount} | Supervisor: 1`;
-            
-            // Signatures
             document.getElementById('rpt-sign-sup').innerText = payload.supervisor;
             document.getElementById('rpt-sign-eng').innerText = payload.entries[0].amnsEngName;
         }
