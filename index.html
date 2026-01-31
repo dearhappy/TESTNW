@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Supervisor App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas for Client-Side JPG generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF (Optional helper) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+        .card { transition: transform 0.2s; }
+        .spinner { border-top-color: #3b82f6; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @-webkit-keyframes spinner { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Hide scrollbar for clean modal */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-white flex flex-col justify-center items-center p-6">
+        <div class="w-full max-w-sm">
+            <h1 class="text-3xl font-bold text-blue-600 mb-2 text-center">Supervisor App</h1>
+            <p class="text-gray-500 text-center mb-8">Secure Login</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="login-user" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500" placeholder="Enter username">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Passcode</label>
+                    <input type="password" id="login-pass" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500" placeholder="••••">
+                </div>
+                <button onclick="handleLogin()" id="btn-login" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Sign In
+                </button>
+                <p id="login-error" class="text-red-500 text-center text-sm hidden">Invalid credentials</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTENT -->
+    <div id="app-content" class="flex-1 flex flex-col hidden h-full">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center shrink-0">
+            <div>
+                <h1 class="text-lg font-bold">Welcome, <span id="display-name">Supervisor</span></h1>
+                <p class="text-xs opacity-80" id="header-date">Loading date...</p>
+            </div>
+            <button onclick="logout()" class="text-white hover:text-blue-200">
+                <i class="fas fa-sign-out-alt fa-lg"></i>
+            </button>
+        </header>
+
+        <!-- Tabs -->
+        <div class="bg-white border-b flex shrink-0">
+            <button onclick="switchTab('checkin')" id="tab-checkin" class="flex-1 py-3 text-center border-b-2 border-blue-600 text-blue-600 font-medium">Check-In</button>
+            <button onclick="switchTab('checkout')" id="tab-checkout" class="flex-1 py-3 text-center border-b-2 border-transparent text-gray-500 font-medium">Check-Out</button>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto bg-gray-50 p-4 relative" id="main-scroll">
+            
+            <!-- CARD 1: CHECK-IN -->
+            <div id="view-checkin" class="space-y-4 max-w-lg mx-auto pb-20">
+                <div class="bg-white p-4 rounded-lg shadow space-y-4">
+                    <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Daily Check-In</h2>
+                    
+                    <!-- Date -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Date</label>
+                        <input type="date" id="ci-date" class="w-full mt-1 p-2 border rounded-md">
+                    </div>
+
+                    <!-- Area -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Area</label>
+                        <select id="ci-area" class="w-full mt-1 p-2 border rounded-md bg-white">
+                            <option value="">Select Area</option>
+                        </select>
+                    </div>
+
+                    <!-- Department -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Department</label>
+                        <select id="ci-dept" class="w-full mt-1 p-2 border rounded-md bg-white">
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+
+                    <!-- Worker Selector -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Select Workers</label>
+                        <input type="text" id="worker-search" placeholder="Search name or ID..." class="w-full p-2 border rounded-t-md text-sm mb-0" onkeyup="filterWorkers()">
+                        <div id="worker-list" class="h-48 overflow-y-auto border border-t-0 rounded-b-md bg-white p-2 space-y-1">
+                            <!-- Populated by JS -->
+                            <div class="text-center text-gray-400 text-sm mt-4">Loading workers...</div>
+                        </div>
+                        <div class="text-right text-xs text-gray-500 mt-1">
+                            Selected: <span id="selected-count" class="font-bold">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button onclick="submitCheckIn()" id="btn-ci-submit" class="w-full bg-green-600 text-white py-3 rounded-md font-semibold shadow hover:bg-green-700 transition">
+                        Submit Check-In
+                    </button>
+                </div>
+            </div>
+
+            <!-- CARD 2: CHECK-OUT -->
+            <div id="view-checkout" class="hidden space-y-4 max-w-lg mx-auto pb-24">
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-lg font-semibold text-gray-700">Work Logs</h2>
+                        <button onclick="openEntryModal()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm shadow hover:bg-blue-700">
+                            <i class="fas fa-plus mr-1"></i> Add Entry
+                        </button>
+                    </div>
+
+                    <!-- List of Entries -->
+                    <div id="entry-list" class="space-y-3">
+                        <div class="text-center text-gray-400 py-8 text-sm">No entries added yet. Tap "Add Entry".</div>
+                    </div>
+                </div>
+
+                <!-- Reference: Today's Checked-in Workers -->
+                <div class="bg-white p-4 rounded-lg shadow opacity-90">
+                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">Manpower Reference</h3>
+                    <div id="ref-worker-list" class="text-sm text-gray-600 space-y-1 pl-2 border-l-4 border-blue-200">
+                        <p class="italic text-gray-400">Loading today's check-ins...</p>
+                    </div>
+                </div>
+
+                <!-- Final Submit -->
+                <button onclick="submitCheckOut()" id="btn-co-final" class="w-full bg-indigo-600 text-white py-3 rounded-md font-semibold shadow hover:bg-indigo-700 transition hidden">
+                    Finalize & Generate Report
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ENTRY MODAL (Check-Out) -->
+    <div id="entry-modal" class="fixed inset-0 z-40 bg-black bg-opacity-50 hidden flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-lg rounded-t-xl sm:rounded-xl p-4 max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Add Work Entry</h3>
+                <button onclick="closeEntryModal()" class="text-gray-500 text-2xl">&times;</button>
+            </div>
+            
+            <div class="space-y-3 pb-4">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Date</label>
+                        <input type="date" id="co-date" class="w-full border rounded p-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Area</label>
+                        <select id="co-area" class="w-full border rounded p-2 text-sm bg-white"></select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-500">Job Type</label>
+                    <select id="co-job" class="w-full border rounded p-2 text-sm bg-white">
+                        <option>Erection</option>
+                        <option>Dismantling</option>
+                        <option>Materials Shifting</option>
+                        <option>Unloading</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-500">Work Location</label>
+                    <input type="text" id="co-location" class="w-full border rounded p-2 text-sm" placeholder="e.g. Tank 4">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Scaffold Type</label>
+                        <select id="co-scaf-type" class="w-full border rounded p-2 text-sm bg-white">
+                            <option>Normal</option>
+                            <option>Suspended</option>
+                            <option>Designed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Elevation</label>
+                        <select id="co-elev" class="w-full border rounded p-2 text-sm bg-white">
+                            <option>0-10</option>
+                            <option>10-20</option>
+                            <option>20-30</option>
+                            <option>30-40</option>
+                            <option>40-50</option>
+                            <option>0-45</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Scaffolders</label>
+                        <input type="number" id="co-scaf-count" class="w-full border rounded p-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Helpers</label>
+                        <input type="number" id="co-help-count" class="w-full border rounded p-2 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-500">AMNS Eng Name</label>
+                    <input type="text" id="co-eng" class="w-full border rounded p-2 text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">Start Time</label>
+                        <input type="time" id="co-start" class="w-full border rounded p-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">End Time</label>
+                        <input type="time" id="co-end" class="w-full border rounded p-2 text-sm">
+                    </div>
+                </div>
+
+                <!-- Dimensions & Volume -->
+                <div class="bg-gray-50 p-2 rounded border">
+                    <div class="grid grid-cols-4 gap-2 mb-2">
+                        <div>
+                            <label class="text-[10px] font-bold text-center block">L</label>
+                            <input type="number" id="co-l" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-center block">W</label>
+                            <input type="number" id="co-w" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-center block">H</label>
+                            <input type="number" id="co-h" class="w-full border p-1 text-sm text-center vol-calc" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-center block">Nos</label>
+                            <input type="number" id="co-nos" class="w-full border p-1 text-sm text-center vol-calc" placeholder="1">
+                        </div>
+                    </div>
+                    <div class="text-right text-sm font-bold text-blue-600">
+                        Vol: <span id="co-vol">0.00</span> CuM
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <button onclick="saveEntry()" class="w-full bg-blue-600 text-white py-3 rounded font-bold shadow">Save Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL (Hidden by default, used for preview/generation) -->
+    <div id="report-modal" class="fixed inset-0 z-50 bg-black bg-opacity-90 hidden flex flex-col justify-center items-center p-4">
+        <div class="bg-white rounded-lg p-4 w-full max-w-md text-center space-y-4">
+            <div id="report-spinner" class="py-10">
+                <div class="spinner ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 mx-auto"></div>
+                <h2 class="text-xl font-semibold">Generating Report...</h2>
+                <p class="text-gray-500">Creating PDF and Image</p>
+            </div>
+            
+            <div id="report-actions" class="hidden space-y-4">
+                <i class="fas fa-check-circle text-5xl text-green-500"></i>
+                <h2 class="text-xl font-bold">Success!</h2>
+                
+                <!-- This div is what we capture for the JPG -->
+                <div id="report-preview" class="bg-white border text-left p-2 text-xs h-64 overflow-hidden relative shadow-inner">
+                    <!-- Basic visual representation for the preview image -->
+                    <h3 class="font-bold text-center">Daily Work Report Preview</h3>
+                    <div id="preview-content"></div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <a id="wa-share-btn" href="#" class="block w-full bg-green-500 text-white py-3 rounded font-bold shadow hover:bg-green-600">
+                        <i class="fab fa-whatsapp mr-2"></i> Share via WhatsApp
+                    </a>
+                    <a id="pdf-dl-btn" href="#" download="report.pdf" class="block w-full bg-gray-600 text-white py-2 rounded font-medium text-sm">
+                        Download PDF
+                    </a>
+                </div>
+                
+                <button onclick="resetApp()" class="text-gray-500 underline text-sm mt-4">Close & Return to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        let currentUser = null;
+        let masterData = { workers: [], areas: [], departments: [] };
+        let entries = []; // Check-Out entries
+        let checkInWorkers = []; // Ref for Checkout
+
+        // --- INIT ---
+        window.onload = function() {
+            // Set date inputs to today
+            document.getElementById('header-date').innerText = new Date().toDateString();
+            document.getElementById('ci-date').valueAsDate = new Date();
+            document.getElementById('co-date').valueAsDate = new Date();
+            
+            // Volume Calc Listeners
+            const calcInputs = document.querySelectorAll('.vol-calc');
+            calcInputs.forEach(input => input.addEventListener('input', calculateVolume));
+        };
+
+        // --- AUTH ---
+        function handleLogin() {
+            const u = document.getElementById('login-user').value;
+            const p = document.getElementById('login-pass').value;
+            const btn = document.getElementById('btn-login');
+            
+            if(!u || !p) return;
+            
+            btn.innerText = 'Verifying...';
+            btn.disabled = true;
+
+            google.script.run.withSuccessHandler(res => {
+                if(res.success) {
+                    currentUser = res.name;
+                    document.getElementById('display-name').innerText = currentUser;
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-content').classList.remove('hidden');
+                    loadMasterData();
+                } else {
+                    document.getElementById('login-error').classList.remove('hidden');
+                    btn.innerText = 'Sign In';
+                    btn.disabled = false;
+                }
+            }).loginUser(u, p);
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // --- DATA LOADING ---
+        function loadMasterData() {
+            google.script.run.withSuccessHandler(data => {
+                masterData = data;
+                
+                // Populate Dropdowns
+                const populate = (id, list) => {
+                    const el = document.getElementById(id);
+                    list.forEach(item => {
+                        let opt = document.createElement('option');
+                        opt.value = item;
+                        opt.innerText = item;
+                        el.appendChild(opt);
+                    });
+                };
+                
+                populate('ci-area', data.areas);
+                populate('ci-dept', data.departments);
+                populate('co-area', data.areas); // Reuse for checkout modal
+
+                renderWorkerList(data.workers);
+            }).getMasterData();
+        }
+
+        // --- WORKER SELECTOR ---
+        function renderWorkerList(list) {
+            const container = document.getElementById('worker-list');
+            container.innerHTML = '';
+            
+            list.forEach((w, i) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center p-2 hover:bg-gray-100 rounded cursor-pointer worker-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="w-${i}" class="mr-3 h-4 w-4 text-blue-600 worker-chk" 
+                        value="${w.sl}" data-idx="${i}">
+                    <div>
+                        <div class="font-medium text-sm text-gray-800">${w.name}</div>
+                        <div class="text-xs text-gray-500">${w.designation} | ${w.empCode}</div>
+                    </div>
+                `;
+                // Allow row click to toggle checkbox
+                div.onclick = (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        const chk = div.querySelector('input');
+                        chk.checked = !chk.checked;
+                        updateSelectedCount();
+                    }
+                };
+                div.querySelector('input').onclick = (e) => e.stopPropagation() || updateSelectedCount();
+                container.appendChild(div);
+            });
+        }
+
+        function filterWorkers() {
+            const term = document.getElementById('worker-search').value.toLowerCase();
+            const items = document.querySelectorAll('.worker-item');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(term) ? 'flex' : 'none';
+            });
+        }
+
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('.worker-chk:checked').length;
+            document.getElementById('selected-count').innerText = count;
+        }
+
+        // --- CHECK-IN LOGIC ---
+        function submitCheckIn() {
+            const date = document.getElementById('ci-date').value;
+            const area = document.getElementById('ci-area').value;
+            const dept = document.getElementById('ci-dept').value;
+            const chks = document.querySelectorAll('.worker-chk:checked');
+            
+            if(!date || !area || !dept || chks.length === 0) {
+                alert("Please select Date, Area, Department and at least one Worker.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-ci-submit');
+            btn.innerText = 'Submitting...';
+            btn.disabled = true;
+
+            const selectedWorkers = Array.from(chks).map(c => masterData.workers[c.dataset.idx]);
+
+            const payload = {
+                date: date,
+                supervisor: currentUser,
+                area: area,
+                department: dept,
+                workers: selectedWorkers
+            };
+
+            google.script.run.withSuccessHandler(res => {
+                btn.innerText = 'Submit Check-In';
+                btn.disabled = false;
+                
+                // Copy Summary to Clipboard
+                const summary = `*Date:* ${date}\n*Supervisor:* ${currentUser}\n*Team:*\n` + 
+                    selectedWorkers.map(w => `- ${w.name} (${w.designation})`).join('\n');
+                
+                // Hacky copy for mobile
+                const ta = document.createElement('textarea');
+                ta.value = summary;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+
+                // Share intent
+                const waUrl = `https://wa.me/?text=${encodeURIComponent(summary)}`;
+                if(confirm("Check-In Saved! Summary copied. Open WhatsApp?")) {
+                    window.open(waUrl, '_blank');
+                }
+                
+                // Store for local session reference in CheckOut
+                checkInWorkers = selectedWorkers;
+                updateRefList();
+
+            }).submitCheckIn(payload);
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tab) {
+            document.getElementById('view-checkin').classList.add('hidden');
+            document.getElementById('view-checkout').classList.add('hidden');
+            document.getElementById('tab-checkin').classList.replace('text-blue-600', 'text-gray-500');
+            document.getElementById('tab-checkin').classList.replace('border-blue-600', 'border-transparent');
+            document.getElementById('tab-checkout').classList.replace('text-blue-600', 'text-gray-500');
+            document.getElementById('tab-checkout').classList.replace('border-blue-600', 'border-transparent');
+
+            if(tab === 'checkin') {
+                document.getElementById('view-checkin').classList.remove('hidden');
+                document.getElementById('tab-checkin').classList.add('text-blue-600', 'border-blue-600');
+                document.getElementById('tab-checkin').classList.remove('text-gray-500', 'border-transparent');
+            } else {
+                document.getElementById('view-checkout').classList.remove('hidden');
+                document.getElementById('tab-checkout').classList.add('text-blue-600', 'border-blue-600');
+                document.getElementById('tab-checkout').classList.remove('text-gray-500', 'border-transparent');
+                
+                // Refresh Ref List from backend if empty (in case of page reload)
+                if(checkInWorkers.length === 0) {
+                   fetchTodayCheckIns();
+                } else {
+                   updateRefList();
+                }
+            }
+        }
+
+        function fetchTodayCheckIns() {
+            const date = document.getElementById('ci-date').value; // Use check-in date
+            const refList = document.getElementById('ref-worker-list');
+            refList.innerHTML = '<p class="italic text-gray-400">Syncing...</p>';
+            
+            google.script.run.withSuccessHandler(data => {
+                checkInWorkers = data;
+                updateRefList();
+            }).getSupervisorCheckIns(date, currentUser);
+        }
+
+        function updateRefList() {
+            const refList = document.getElementById('ref-worker-list');
+            if(checkInWorkers.length === 0) {
+                refList.innerHTML = '<p class="italic text-gray-400">No Check-Ins found for today.</p>';
+                return;
+            }
+            refList.innerHTML = checkInWorkers.map(w => 
+                `<div class="flex justify-between"><span>${w.name}</span> <span class="text-xs bg-gray-200 px-1 rounded">${w.designation}</span></div>`
+            ).join('');
+        }
+
+        // --- CHECK-OUT LOGIC ---
+        function openEntryModal() {
+            document.getElementById('entry-modal').classList.remove('hidden');
+        }
+        function closeEntryModal() {
+            document.getElementById('entry-modal').classList.add('hidden');
+        }
+
+        function calculateVolume() {
+            const l = parseFloat(document.getElementById('co-l').value) || 0;
+            const w = parseFloat(document.getElementById('co-w').value) || 0;
+            const h = parseFloat(document.getElementById('co-h').value) || 0;
+            const nos = parseFloat(document.getElementById('co-nos').value) || 0;
+            const vol = (l * w * h * nos).toFixed(2);
+            document.getElementById('co-vol').innerText = vol;
+        }
+
+        function saveEntry() {
+            const entry = {
+                date: document.getElementById('co-date').value,
+                area: document.getElementById('co-area').value,
+                jobType: document.getElementById('co-job').value,
+                workLocation: document.getElementById('co-location').value,
+                scaffoldType: document.getElementById('co-scaf-type').value,
+                elevation: document.getElementById('co-elev').value,
+                scaffolders: document.getElementById('co-scaf-count').value,
+                helpers: document.getElementById('co-help-count').value,
+                amnsEngName: document.getElementById('co-eng').value,
+                startTime: document.getElementById('co-start').value,
+                endTime: document.getElementById('co-end').value,
+                l: document.getElementById('co-l').value,
+                w: document.getElementById('co-w').value,
+                h: document.getElementById('co-h').value,
+                nos: document.getElementById('co-nos').value,
+                vol: document.getElementById('co-vol').innerText
+            };
+
+            entries.push(entry);
+            renderEntryList();
+            closeEntryModal();
+            // Clear inputs if needed, or keep for speed
+        }
+
+        function renderEntryList() {
+            const list = document.getElementById('entry-list');
+            const btn = document.getElementById('btn-co-final');
+            
+            if(entries.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">No entries added.</div>';
+                btn.classList.add('hidden');
+                return;
+            }
+
+            btn.classList.remove('hidden');
+            list.innerHTML = entries.map((e, i) => `
+                <div class="bg-blue-50 border border-blue-100 p-3 rounded text-sm relative">
+                    <button onclick="removeEntry(${i})" class="absolute top-2 right-2 text-red-400 font-bold">&times;</button>
+                    <div class="font-bold text-blue-800">${e.jobType} @ ${e.workLocation}</div>
+                    <div class="grid grid-cols-2 gap-x-4 mt-1 text-gray-600 text-xs">
+                        <div>Area: ${e.area}</div>
+                        <div>Elev: ${e.elevation}</div>
+                        <div>Vol: ${e.vol}m³</div>
+                        <div>Time: ${e.startTime}-${e.endTime}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeEntry(idx) {
+            entries.splice(idx, 1);
+            renderEntryList();
+        }
+
+        // --- FINAL SUBMISSION & REPORTING ---
+        function submitCheckOut() {
+            if(entries.length === 0) return;
+
+            document.getElementById('report-modal').classList.remove('hidden');
+            document.getElementById('report-spinner').classList.remove('hidden');
+            document.getElementById('report-actions').classList.add('hidden');
+
+            // Construct payload
+            const payload = {
+                supervisor: currentUser,
+                entries: entries
+            };
+
+            google.script.run.withSuccessHandler(res => {
+                if(res.success) {
+                    // Update UI for success
+                    document.getElementById('report-spinner').classList.add('hidden');
+                    document.getElementById('report-actions').classList.remove('hidden');
+                    
+                    // Setup PDF Download
+                    // We receive base64 PDF from server
+                    const link = document.getElementById('pdf-dl-btn');
+                    link.href = "data:application/pdf;base64," + res.reportUrl;
+                    
+                    // Generate JPG for WhatsApp
+                    generateJpgPreview(payload, "data:application/pdf;base64," + res.reportUrl);
+                }
+            }).submitCheckOut(payload);
+        }
+
+        function generateJpgPreview(payload, pdfDataUri) {
+            // Fill preview div
+            const prev = document.getElementById('preview-content');
+            let html = `<div class="p-2 bg-white">
+                <div class="font-bold border-b mb-1">Date: ${payload.entries[0].date}</div>
+                <div class="text-[10px] space-y-1">`;
+            
+            payload.entries.forEach(e => {
+                html += `<div>• ${e.jobType} (${e.workLocation}) - ${e.vol}m³</div>`;
+            });
+
+            html += `</div><div class="mt-2 pt-1 border-t font-bold">Total Workers: ${checkInWorkers.length}</div></div>`;
+            prev.innerHTML = html;
+
+            // Use html2canvas to create image
+            html2canvas(document.getElementById('report-preview')).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg');
+                
+                // Prepare WhatsApp Link
+                // Note: WhatsApp Web/App cannot attach images programmatically via URL scheme.
+                // We provide the text summary and let user attach the image if they save it, 
+                // or just rely on the text + PDF link. 
+                // However, the spec asks for "WhatsApp share popup with the generated report".
+                // Best practice for Web App: Share Text + Link.
+                // We will simulate sharing by asking them to download/screenshot if needed, 
+                // but standard web apps can't inject images into WA.
+                
+                // We will simply open WhatsApp with a detailed text summary.
+                const text = `*Daily Report*\nSupervisor: ${currentUser}\nEntries: ${entries.length}\nSee attached PDF for details.`;
+                document.getElementById('wa-share-btn').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            });
+        }
+
+        function resetApp() {
+            location.reload();
+        }
+
+    </script>
+</body>
+</html>
