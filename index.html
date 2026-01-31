@@ -201,12 +201,12 @@
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="text-xs font-bold text-gray-500">Scaffolders</label>
-                        <input type="number" id="co-scaf-count" class="w-full border rounded p-2 text-sm">
+                        <label class="text-xs font-bold text-gray-500">Scaffolders (Auto)</label>
+                        <input type="number" id="co-scaf-count" class="w-full border rounded p-2 text-sm bg-gray-50" readonly>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500">Helpers</label>
-                        <input type="number" id="co-help-count" class="w-full border rounded p-2 text-sm">
+                        <label class="text-xs font-bold text-gray-500">Helpers (Auto)</label>
+                        <input type="number" id="co-help-count" class="w-full border rounded p-2 text-sm bg-gray-50" readonly>
                     </div>
                 </div>
 
@@ -270,6 +270,7 @@
             <div id="report-actions" class="hidden space-y-4">
                 <i class="fas fa-check-circle text-5xl text-green-500"></i>
                 <h2 class="text-xl font-bold">Success!</h2>
+                <p class="text-xs text-gray-500">Downloads should start automatically.</p>
                 
                 <!-- Preview Capture Area -->
                 <div id="report-preview" class="bg-white border text-left p-2 text-xs h-64 overflow-hidden relative shadow-inner">
@@ -282,7 +283,7 @@
                         <i class="fab fa-whatsapp mr-2"></i> Share via WhatsApp
                     </a>
                     <a id="pdf-dl-btn" href="#" download="report.pdf" class="block w-full bg-gray-600 text-white py-2 rounded font-medium text-sm">
-                        Download PDF
+                        Download PDF Manually
                     </a>
                 </div>
                 
@@ -328,10 +329,9 @@
             const calcInputs = document.querySelectorAll('.vol-calc');
             calcInputs.forEach(input => input.addEventListener('input', calculateVolume));
             
-            loadUsernames(); // Load usernames for dropdown
+            loadUsernames();
         };
         
-        // --- LOAD USERNAMES (NEW) ---
         async function loadUsernames() {
             try {
                 const users = await apiRequest('getUsernames');
@@ -339,7 +339,6 @@
                 select.innerHTML = '<option value="">Select Username</option>';
                 
                 if (users.length === 0) {
-                     // Handle case where sheet was just created empty
                      const opt = document.createElement('option');
                      opt.value = "admin";
                      opt.innerText = "admin (Default)";
@@ -469,7 +468,6 @@
                 
                 const summary = `*Date:* ${date}\n*Supervisor:* ${currentUser}\n*Team:*\n` + selectedWorkers.map(w => `- ${w.name} (${w.designation})`).join('\n');
                 
-                // Copy to clipboard
                 const ta = document.createElement('textarea');
                 ta.value = summary;
                 document.body.appendChild(ta);
@@ -534,8 +532,30 @@
         }
 
         // --- CHECK-OUT ---
-        function openEntryModal() { document.getElementById('entry-modal').classList.remove('hidden'); }
+        function openEntryModal() { 
+            document.getElementById('entry-modal').classList.remove('hidden');
+            
+            // AUTO FILL LOGIC: Count Scaffolders and Helpers from checkInWorkers
+            let scafCount = 0;
+            let helpCount = 0;
+            
+            if (checkInWorkers && checkInWorkers.length > 0) {
+                checkInWorkers.forEach(w => {
+                    const des = (w.designation || "").toLowerCase();
+                    if (des.includes("scaffolder")) {
+                        scafCount++;
+                    } else if (des.includes("helper")) {
+                        helpCount++;
+                    }
+                });
+            }
+            
+            document.getElementById('co-scaf-count').value = scafCount;
+            document.getElementById('co-help-count').value = helpCount;
+        }
+
         function closeEntryModal() { document.getElementById('entry-modal').classList.add('hidden'); }
+        
         function calculateVolume() {
             const l = parseFloat(document.getElementById('co-l').value) || 0;
             const w = parseFloat(document.getElementById('co-w').value) || 0;
@@ -599,17 +619,36 @@
                     document.getElementById('report-spinner').classList.add('hidden');
                     document.getElementById('report-actions').classList.remove('hidden');
                     
+                    // 1. Setup PDF Link
                     const link = document.getElementById('pdf-dl-btn');
                     link.href = "data:application/pdf;base64," + res.reportUrl;
                     
+                    // 2. Generate Preview content
                     const prev = document.getElementById('preview-content');
                     prev.innerHTML = `<div class="p-2 bg-white"><div class="font-bold border-b mb-1">Date: ${payload.entries[0].date}</div><div class="text-[10px] space-y-1">` + 
                         payload.entries.map(e => `<div>• ${e.jobType} (${e.workLocation}) - ${e.vol}m³</div>`).join('') + 
                         `</div><div class="mt-2 pt-1 border-t font-bold">Total Workers: ${checkInWorkers.length}</div></div>`;
 
+                    // 3. Generate JPG and Auto-Download BOTH
                     html2canvas(document.getElementById('report-preview')).then(canvas => {
+                        const jpgUrl = canvas.toDataURL('image/jpeg');
+                        
+                        // Setup WA button
                         const text = `*Daily Report*\nSupervisor: ${currentUser}\nEntries: ${entries.length}\n(PDF Attached below)`;
                         document.getElementById('wa-share-btn').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+
+                        // AUTO DOWNLOAD PDF
+                        setTimeout(() => link.click(), 500);
+
+                        // AUTO DOWNLOAD JPG
+                        setTimeout(() => {
+                            const jpgLink = document.createElement('a');
+                            jpgLink.href = jpgUrl;
+                            jpgLink.download = `Report_${new Date().getTime()}.jpg`;
+                            document.body.appendChild(jpgLink);
+                            jpgLink.click();
+                            document.body.removeChild(jpgLink);
+                        }, 1500); // Slight delay to allow browser to handle first download
                     });
                 }
             } catch(e) {
