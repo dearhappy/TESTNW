@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2canvas for Client-Side JPG generation -->
+    <!-- html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -31,7 +31,9 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Username</label>
-                    <input type="text" id="login-user" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500" placeholder="Enter username">
+                    <select id="login-user" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500 bg-white">
+                        <option value="">Loading users...</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Passcode</label>
@@ -41,7 +43,7 @@
                     Sign In
                 </button>
                 <p id="login-error" class="text-red-500 text-center text-sm hidden">Invalid credentials</p>
-                <p id="loading-msg" class="text-gray-400 text-center text-sm hidden">Connecting to Server...</p>
+                <p id="loading-msg" class="text-gray-400 text-center text-sm hidden">Connecting...</p>
             </div>
         </div>
     </div>
@@ -298,19 +300,10 @@
             let url = `${API_URL}?action=${action}`;
             let options = { method: method };
             
-            // Apps Script requires POST to use text/plain to avoid CORS preflight issues in some cases
-            // but we use simple POST here. 
-            // NOTE: We use text/plain for the body to prevent complex CORS preflight checks 
-            // that Google Apps Script sometimes rejects. 
-            
             if (method === 'POST') {
-                // We send data in the body for POST, but action is inside body
                 const payload = { ...data, action: action };
                 options.body = JSON.stringify(payload);
-                // We use 'no-cors' mode is NOT an option if we want the response.
-                // Standard fetch is fine if GAS backend serves correct CORS.
             } else {
-                // Append params for GET
                 const params = new URLSearchParams(data).toString();
                 if(params) url += `&${params}`;
             }
@@ -334,7 +327,36 @@
             
             const calcInputs = document.querySelectorAll('.vol-calc');
             calcInputs.forEach(input => input.addEventListener('input', calculateVolume));
+            
+            loadUsernames(); // Load usernames for dropdown
         };
+        
+        // --- LOAD USERNAMES (NEW) ---
+        async function loadUsernames() {
+            try {
+                const users = await apiRequest('getUsernames');
+                const select = document.getElementById('login-user');
+                select.innerHTML = '<option value="">Select Username</option>';
+                
+                if (users.length === 0) {
+                     // Handle case where sheet was just created empty
+                     const opt = document.createElement('option');
+                     opt.value = "admin";
+                     opt.innerText = "admin (Default)";
+                     select.appendChild(opt);
+                } else {
+                    users.forEach(u => {
+                        const opt = document.createElement('option');
+                        opt.value = u;
+                        opt.innerText = u;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to load users", e);
+                document.getElementById('login-user').innerHTML = '<option value="">Error loading users</option>';
+            }
+        }
 
         // --- AUTH ---
         async function handleLogin() {
@@ -580,14 +602,12 @@
                     const link = document.getElementById('pdf-dl-btn');
                     link.href = "data:application/pdf;base64," + res.reportUrl;
                     
-                    // Generate Preview for User
                     const prev = document.getElementById('preview-content');
                     prev.innerHTML = `<div class="p-2 bg-white"><div class="font-bold border-b mb-1">Date: ${payload.entries[0].date}</div><div class="text-[10px] space-y-1">` + 
                         payload.entries.map(e => `<div>• ${e.jobType} (${e.workLocation}) - ${e.vol}m³</div>`).join('') + 
                         `</div><div class="mt-2 pt-1 border-t font-bold">Total Workers: ${checkInWorkers.length}</div></div>`;
 
                     html2canvas(document.getElementById('report-preview')).then(canvas => {
-                        // Just setup the WA button with text, as we can't share images directly via web
                         const text = `*Daily Report*\nSupervisor: ${currentUser}\nEntries: ${entries.length}\n(PDF Attached below)`;
                         document.getElementById('wa-share-btn').href = `https://wa.me/?text=${encodeURIComponent(text)}`;
                     });
