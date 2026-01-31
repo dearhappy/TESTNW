@@ -43,8 +43,11 @@
             padding: 4px; 
             text-align: center; 
             font-size: 10px; 
-            word-wrap: break-word; /* Wrap text */
+            /* Fix for overlapping text */
+            word-wrap: break-word;
             overflow-wrap: break-word;
+            word-break: break-all; /* Forces break even within words if container is too small */
+            white-space: normal;
         }
         #hidden-report-container th { background-color: #eee; font-weight: bold; }
         #hidden-report-container h2 { text-align: center; font-size: 24px; margin-bottom: 10px; }
@@ -224,19 +227,18 @@
                 <col style="width: 8%;">  <!-- Dept -->
                 <col style="width: 8%;">  <!-- Tag -->
                 <col style="width: 10%;"> <!-- Job -->
-                <col style="width: 14%;"> <!-- Loc -->
+                <col style="width: 26%;"> <!-- Loc (Expanded) -->
                 <col style="width: 8%;">  <!-- Type -->
                 <col style="width: 6%;">  <!-- Elev -->
                 <col style="width: 5%;">  <!-- Scf -->
                 <col style="width: 5%;">  <!-- Hlp -->
                 <col style="width: 8%;">  <!-- Dur -->
                 <col style="width: 8%;">  <!-- Vol -->
-                <col style="width: 12%;"> <!-- Eng -->
             </colgroup>
             <thead>
                 <tr>
                     <th>Area</th><th>Dept</th><th>Tag No</th><th>Job</th><th>Loc</th><th>Type</th><th>Elev</th>
-                    <th>Scf</th><th>Hlp</th><th>Dur</th><th>Vol</th><th>Eng</th>
+                    <th>Scf</th><th>Hlp</th><th>Dur</th><th>Vol</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -568,7 +570,7 @@
                 }
                 jobBody.insertAdjacentHTML('beforeend', `<tr>
                     <td>${e.area}</td><td>${e.department || '-'}</td><td>${e.tagNo || '-'}</td><td>${e.jobType}</td><td>${e.workLocation}</td>
-                    <td>${e.scaffoldType}</td><td>${e.elevation}</td><td>${e.scaffolders}</td><td>${e.helpers}</td><td>${dur}</td><td>${e.vol}</td><td>${e.amnsEngName}</td>
+                    <td>${e.scaffoldType}</td><td>${e.elevation}</td><td>${e.scaffolders}</td><td>${e.helpers}</td><td>${dur}</td><td>${e.vol}</td>
                 </tr>`);
             });
             
@@ -579,14 +581,12 @@
                 const des = (w.designation || "").toLowerCase();
                 if(des.includes('scaffolder')) scafCount++;
                 if(des.includes('helper')) helpCount++;
-                
-                // MANPOWER ROW
                 manBody.insertAdjacentHTML('beforeend', `<tr>
                     <td>${i+1}</td>
                     <td>${w.name}</td>
                     <td>${w.empCode}</td>
                     <td>${w.designation}</td>
-                    <td></td> <!-- Empty Overtime -->
+                    <td></td>
                 </tr>`);
             });
             
