@@ -19,21 +19,34 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Hidden Container for JPG Generation - Mimics PDF A4 Layout */
+        /* Hidden Container for JPG Generation - Optimized for A4 Wrapping */
         #hidden-report-container {
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 794px; /* A4 width at approx 96 DPI */
-            min-height: 1123px; /* A4 height */
+            width: 794px; /* A4 Width */
+            /* min-height is optional, content will push it */
             background: white;
             padding: 40px;
             font-family: 'Arial', sans-serif;
             color: black;
             z-index: -1;
+            box-sizing: border-box; /* Ensure padding doesn't increase width */
         }
-        #hidden-report-container table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        #hidden-report-container th, #hidden-report-container td { border: 1px solid #333; padding: 6px; text-align: center; font-size: 12px; }
+        #hidden-report-container table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+            table-layout: fixed; /* CRITICAL: Forces table to stay within width */
+        }
+        #hidden-report-container th, #hidden-report-container td { 
+            border: 1px solid #333; 
+            padding: 6px; 
+            text-align: center; 
+            font-size: 11px; /* Slightly smaller font to fit more */
+            word-wrap: break-word; /* CRITICAL: Wraps long text */
+            overflow-wrap: break-word;
+        }
         #hidden-report-container th { background-color: #eee; font-weight: bold; }
         #hidden-report-container h2 { text-align: center; font-size: 24px; margin-bottom: 10px; }
         #hidden-report-container .header-info { text-align: center; margin-bottom: 20px; font-size: 14px; }
@@ -313,6 +326,17 @@
         
         <div class="section-title">Job Entries</div>
         <table id="rpt-job-table">
+            <colgroup>
+                <col style="width: 12%;">
+                <col style="width: 12%;">
+                <col style="width: 25%;"> <!-- Work Location gets more space -->
+                <col style="width: 10%;">
+                <col style="width: 8%;">
+                <col style="width: 5%;">
+                <col style="width: 5%;">
+                <col style="width: 11%;">
+                <col style="width: 12%;">
+            </colgroup>
             <thead>
                 <tr>
                     <th>Area</th><th>Job</th><th>Loc</th><th>Type</th><th>Elev</th>
@@ -324,6 +348,12 @@
 
         <div class="section-title">Manpower Details (Check-In)</div>
         <table id="rpt-manpower-table">
+            <colgroup>
+                <col style="width: 10%;">
+                <col style="width: 40%;">
+                <col style="width: 30%;">
+                <col style="width: 20%;">
+            </colgroup>
             <thead><tr><th>No.</th><th>Name</th><th>Designation</th><th>Emp Code</th></tr></thead>
             <tbody></tbody>
         </table>
