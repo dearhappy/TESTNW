@@ -118,7 +118,6 @@
 
             <!-- CHECK-OUT -->
             <div id="view-checkout" class="hidden space-y-4 max-w-lg mx-auto pb-24">
-                <!-- Date Selector for Backdating -->
                 <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between">
                     <label class="text-sm font-bold text-gray-600">Report Date:</label>
                     <input type="date" id="co-date-display" class="border rounded p-1 text-sm font-semibold" onchange="handleCheckOutDateChange()">
@@ -141,9 +140,7 @@
                     </div>
                 </div>
                 
-                <!-- Hidden inputs to store fetched context -->
                 <input type="hidden" id="fetched-dept" value="">
-
                 <button onclick="submitCheckOut()" id="btn-co-final" class="w-full bg-indigo-600 text-white py-3 rounded-md font-semibold shadow hover:bg-indigo-700 transition hidden">Finalize & Generate Report</button>
             </div>
         </div>
@@ -162,19 +159,10 @@
                     <div><label class="text-xs font-bold text-gray-500">Date</label><input type="date" id="co-date" class="w-full border rounded p-2 text-sm bg-gray-100" readonly></div>
                     <div><label class="text-xs font-bold text-gray-500">Area</label><select id="co-area" class="w-full border rounded p-2 text-sm bg-white"></select></div>
                 </div>
-                
-                <!-- NEW FIELDS -->
                 <div class="grid grid-cols-2 gap-2">
-                     <div>
-                         <label class="text-xs font-bold text-gray-500">Department (Auto)</label>
-                         <input type="text" id="co-dept" class="w-full border rounded p-2 text-sm bg-gray-100" readonly placeholder="No Check-In Data">
-                     </div>
-                     <div>
-                         <label class="text-xs font-bold text-gray-500">Tag No</label>
-                         <input type="text" id="co-tag" class="w-full border rounded p-2 text-sm" placeholder="e.g. T-101">
-                     </div>
+                     <div><label class="text-xs font-bold text-gray-500">Department (Auto)</label><input type="text" id="co-dept" class="w-full border rounded p-2 text-sm bg-gray-100" readonly placeholder="No Check-In Data"></div>
+                     <div><label class="text-xs font-bold text-gray-500">Tag No</label><input type="text" id="co-tag" class="w-full border rounded p-2 text-sm" placeholder="e.g. T-101"></div>
                 </div>
-
                 <div><label class="text-xs font-bold text-gray-500">Job Type</label><select id="co-job" class="w-full border rounded p-2 text-sm bg-white"><option>Erection</option><option>Dismantling</option><option>Materials Shifting</option><option>Unloading</option></select></div>
                 <div><label class="text-xs font-bold text-gray-500">Work Location</label><input type="text" id="co-location" class="w-full border rounded p-2 text-sm" placeholder="e.g. Tank 4"></div>
                 <div class="grid grid-cols-2 gap-2">
@@ -255,8 +243,22 @@
         </table>
         <div class="section-title">Manpower Details (Check-In)</div>
         <table id="rpt-manpower-table">
-            <colgroup><col style="width: 10%;"><col style="width: 40%;"><col style="width: 30%;"><col style="width: 20%;"></colgroup>
-            <thead><tr><th>No.</th><th>Name</th><th>Designation</th><th>Emp Code</th></tr></thead>
+            <colgroup>
+                <col style="width: 10%;"> <!-- SL NO -->
+                <col style="width: 30%;"> <!-- NAME -->
+                <col style="width: 15%;"> <!-- EmpCode -->
+                <col style="width: 25%;"> <!-- Designation -->
+                <col style="width: 20%;"> <!-- Overtime -->
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>SL NO.</th>
+                    <th>NAME</th>
+                    <th>EmpCode</th>
+                    <th>Designation</th>
+                    <th>Overtime</th>
+                </tr>
+            </thead>
             <tbody></tbody>
         </table>
         <p id="rpt-totals" style="font-weight:bold;"></p>
@@ -299,7 +301,6 @@
         window.onload = function() {
             document.getElementById('header-date').innerText = new Date().toDateString();
             document.getElementById('ci-date').valueAsDate = new Date();
-            // Default checkout date to today
             document.getElementById('co-date-display').valueAsDate = new Date();
             
             const calcInputs = document.querySelectorAll('.vol-calc');
@@ -318,9 +319,7 @@
                 } else {
                     users.forEach(u => { const opt = document.createElement('option'); opt.value = u; opt.innerText = u; select.appendChild(opt); });
                 }
-            } catch (e) {
-                console.error("Failed to load users", e);
-            }
+            } catch (e) { console.error("Failed to load users", e); }
         }
 
         // AUTH
@@ -426,11 +425,11 @@
                 document.getElementById('view-checkout').classList.remove('hidden');
                 document.getElementById('tab-checkout').classList.add('text-blue-600', 'border-blue-600');
                 document.getElementById('tab-checkout').classList.remove('text-gray-500', 'border-transparent');
-                handleCheckOutDateChange(); // Load data for default date immediately
+                handleCheckOutDateChange();
             }
         }
 
-        // CHECK-OUT DATE LOGIC
+        // DATE CHANGE LOGIC
         async function handleCheckOutDateChange() {
             const date = document.getElementById('co-date-display').value;
             const refList = document.getElementById('ref-worker-list');
@@ -440,37 +439,25 @@
             entryList.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">Syncing logs...</div>';
             
             try {
-                // Fetch ALL data for this date
                 const data = await apiRequest('getDailyData', { date, supervisor: currentUser });
                 
-                // 1. Update Check-In (Manpower) reference
                 checkInWorkers = data.checkIns;
-                document.getElementById('fetched-dept').value = data.department || ""; // Store fetched dept
+                document.getElementById('fetched-dept').value = data.department || "";
                 
                 if(checkInWorkers.length === 0) {
                     refList.innerHTML = '<p class="italic text-gray-400">No Check-Ins found for this date.</p>';
                 } else {
                     refList.innerHTML = checkInWorkers.map(w => `<div class="flex justify-between"><span>${w.name}</span> <span class="text-xs bg-gray-200 px-1 rounded">${w.designation}</span></div>`).join('');
                 }
-
-                // 2. Update Entries (Previous Logs)
                 entries = data.logs || [];
                 renderEntryList();
-                
-            } catch(e) {
-                console.error(e);
-                refList.innerHTML = '<p class="text-red-400">Sync failed.</p>';
-                entryList.innerHTML = '<p class="text-red-400">Sync failed.</p>';
-            }
+            } catch(e) { console.error(e); }
         }
 
-        // CHECK-OUT MODAL
+        // MODAL
         function openEntryModal() {
-            // Set modal date to selected report date
             document.getElementById('co-date').value = document.getElementById('co-date-display').value;
-            // Auto-fill Department
             document.getElementById('co-dept').value = document.getElementById('fetched-dept').value;
-            // Count Workers
             let scafCount = 0, helpCount = 0;
             checkInWorkers.forEach(w => {
                 const des = (w.designation || "").toLowerCase();
@@ -479,12 +466,10 @@
             });
             document.getElementById('co-scaf-count').value = scafCount;
             document.getElementById('co-help-count').value = helpCount;
-            
             document.getElementById('entry-modal').classList.remove('hidden');
         }
 
         function closeEntryModal() { document.getElementById('entry-modal').classList.add('hidden'); }
-        
         function calculateVolume() {
             const l = parseFloat(document.getElementById('co-l').value) || 0;
             const w = parseFloat(document.getElementById('co-w').value) || 0;
@@ -497,8 +482,8 @@
             entries.push({
                 date: document.getElementById('co-date').value,
                 area: document.getElementById('co-area').value,
-                department: document.getElementById('co-dept').value, // Saved
-                tagNo: document.getElementById('co-tag').value,       // Saved
+                department: document.getElementById('co-dept').value,
+                tagNo: document.getElementById('co-tag').value,
                 jobType: document.getElementById('co-job').value,
                 workLocation: document.getElementById('co-location').value,
                 scaffoldType: document.getElementById('co-scaf-type').value,
@@ -549,7 +534,6 @@
                 if(res.success) {
                     document.getElementById('report-spinner').classList.add('hidden');
                     document.getElementById('report-actions').classList.remove('hidden');
-                    
                     const link = document.getElementById('pdf-dl-btn');
                     link.href = "data:application/pdf;base64," + res.reportUrl;
                     
@@ -595,7 +579,15 @@
                 const des = (w.designation || "").toLowerCase();
                 if(des.includes('scaffolder')) scafCount++;
                 if(des.includes('helper')) helpCount++;
-                manBody.insertAdjacentHTML('beforeend', `<tr><td>${i+1}</td><td>${w.name}</td><td>${w.designation}</td><td>${w.empCode}</td></tr>`);
+                
+                // MANPOWER ROW
+                manBody.insertAdjacentHTML('beforeend', `<tr>
+                    <td>${i+1}</td>
+                    <td>${w.name}</td>
+                    <td>${w.empCode}</td>
+                    <td>${w.designation}</td>
+                    <td></td> <!-- Empty Overtime -->
+                </tr>`);
             });
             
             document.getElementById('rpt-totals').innerText = `Totals (Attendance): Scaffolders: ${scafCount} | Helpers: ${helpCount} | Supervisor: 1`;
