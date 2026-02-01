@@ -19,7 +19,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* A4 LANDSCAPE Container (1123px wide) */
+        /* A4 LANDSCAPE Container */
         #hidden-report-container {
             position: absolute;
             left: -9999px;
@@ -33,29 +33,24 @@
             box-sizing: border-box;
         }
         
-        /* Layout Grid for Header */
         .rpt-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; font-size: 14px; }
         
-        /* Tables */
         .rpt-table { 
             width: 100%; 
             border-collapse: collapse; 
             margin-bottom: 20px; 
-            table-layout: fixed; /* STRICT LAYOUT */
+            table-layout: fixed; 
         }
         .rpt-table th, .rpt-table td { 
             border: 1px solid #000; 
             padding: 6px; 
             text-align: center; 
             font-size: 12px; 
-            /* No Wrap Configuration */
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis;
         }
         .rpt-table th { background-color: #eee; font-weight: bold; text-transform: uppercase; }
-        
-        /* Allow Location to wrap slightly */
         .wrap-cell { white-space: normal !important; word-wrap: break-word; line-height: 1.2; }
         
         h2 { text-align: center; font-size: 28px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
@@ -69,21 +64,10 @@
         <div class="w-full max-w-sm">
             <h1 class="text-3xl font-bold text-blue-600 mb-2 text-center">Supervisor App</h1>
             <p class="text-gray-500 text-center mb-8">Secure Login</p>
-            
             <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Username</label>
-                    <select id="login-user" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500 bg-white">
-                        <option value="">Loading users...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Passcode</label>
-                    <input type="password" id="login-pass" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500" placeholder="••••">
-                </div>
-                <button onclick="handleLogin()" id="btn-login" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Sign In
-                </button>
+                <div><label class="block text-sm font-medium text-gray-700">Username</label><select id="login-user" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500 bg-white"><option value="">Loading users...</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700">Passcode</label><input type="password" id="login-pass" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-3 focus:border-blue-500 focus:ring-blue-500" placeholder="••••"></div>
+                <button onclick="handleLogin()" id="btn-login" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Sign In</button>
                 <p id="login-error" class="text-red-500 text-center text-sm hidden">Invalid credentials</p>
                 <p id="loading-msg" class="text-gray-400 text-center text-sm hidden">Connecting...</p>
             </div>
@@ -93,18 +77,13 @@
     <!-- MAIN APP CONTENT -->
     <div id="app-content" class="flex-1 flex flex-col hidden h-full">
         <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center shrink-0">
-            <div>
-                <h1 class="text-lg font-bold">Welcome, <span id="display-name">Supervisor</span></h1>
-                <p class="text-xs opacity-80" id="header-date">Loading date...</p>
-            </div>
+            <div><h1 class="text-lg font-bold">Welcome, <span id="display-name">Supervisor</span></h1><p class="text-xs opacity-80" id="header-date">Loading date...</p></div>
             <button onclick="logout()" class="text-white hover:text-blue-200"><i class="fas fa-sign-out-alt fa-lg"></i></button>
         </header>
-
         <div class="bg-white border-b flex shrink-0">
             <button onclick="switchTab('checkin')" id="tab-checkin" class="flex-1 py-3 text-center border-b-2 border-blue-600 text-blue-600 font-medium">Check-In</button>
             <button onclick="switchTab('checkout')" id="tab-checkout" class="flex-1 py-3 text-center border-b-2 border-transparent text-gray-500 font-medium">Check-Out</button>
         </div>
-
         <div class="flex-1 overflow-y-auto bg-gray-50 p-4 relative" id="main-scroll">
             
             <!-- CHECK-IN -->
@@ -117,9 +96,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-600 mb-1">Select Workers</label>
                         <input type="text" id="worker-search" placeholder="Search..." class="w-full p-2 border rounded-t-md text-sm mb-0" onkeyup="filterWorkers()">
-                        <div id="worker-list" class="h-48 overflow-y-auto border border-t-0 rounded-b-md bg-white p-2 space-y-1">
-                            <div class="text-center text-gray-400 text-sm mt-4">Loading workers...</div>
-                        </div>
+                        <div id="worker-list" class="h-48 overflow-y-auto border border-t-0 rounded-b-md bg-white p-2 space-y-1"><div class="text-center text-gray-400 text-sm mt-4">Loading workers...</div></div>
                         <div class="text-right text-xs text-gray-500 mt-1">Selected: <span id="selected-count" class="font-bold">0</span></div>
                     </div>
                     <button onclick="submitCheckIn()" id="btn-ci-submit" class="w-full bg-green-600 text-white py-3 rounded-md font-semibold shadow hover:bg-green-700 transition">Submit Check-In</button>
@@ -132,24 +109,17 @@
                     <label class="text-sm font-bold text-gray-600">Report Date:</label>
                     <input type="date" id="co-date-display" class="border rounded p-1 text-sm font-semibold" onchange="handleCheckOutDateChange()">
                 </div>
-
                 <div class="bg-white p-4 rounded-lg shadow">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h2 class="text-lg font-semibold text-gray-700">Work Logs</h2>
                         <button onclick="openEntryModal()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm shadow hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Add</button>
                     </div>
-                    <div id="entry-list" class="space-y-3">
-                        <div class="text-center text-gray-400 py-8 text-sm">Loading logs...</div>
-                    </div>
+                    <div id="entry-list" class="space-y-3"><div class="text-center text-gray-400 py-8 text-sm">Loading logs...</div></div>
                 </div>
-
                 <div class="bg-white p-4 rounded-lg shadow opacity-90">
                     <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">Manpower Reference</h3>
-                    <div id="ref-worker-list" class="text-sm text-gray-600 space-y-1 pl-2 border-l-4 border-blue-200">
-                        <p class="italic text-gray-400">Select date to load.</p>
-                    </div>
+                    <div id="ref-worker-list" class="text-sm text-gray-600 space-y-1 pl-2 border-l-4 border-blue-200"><p class="italic text-gray-400">Select date to load.</p></div>
                 </div>
-                
                 <input type="hidden" id="fetched-dept" value="">
                 <button onclick="submitCheckOut()" id="btn-co-final" class="w-full bg-indigo-600 text-white py-3 rounded-md font-semibold shadow hover:bg-indigo-700 transition hidden">Finalize & Generate Report</button>
             </div>
@@ -163,7 +133,6 @@
                 <h3 class="text-lg font-bold">Add Work Entry</h3>
                 <button onclick="closeEntryModal()" class="text-gray-500 text-2xl">&times;</button>
             </div>
-            
             <div class="space-y-3 pb-4">
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="text-xs font-bold text-gray-500">Date</label><input type="date" id="co-date" class="w-full border rounded p-2 text-sm bg-gray-100" readonly></div>
@@ -230,7 +199,7 @@
             <div>
                 <div>Date: <span id="rpt-date"></span></div>
                 <div>Department: <span id="rpt-dept"></span></div>
-                <div>Tag No: <span id="rpt-tag"></span></div>
+                <!-- Removed Tag No here -->
             </div>
             <div style="text-align:right;">
                 <div>Supervisor: <span id="rpt-sup-top"></span></div>
@@ -244,11 +213,12 @@
                 <col style="width: 4%;">  <!-- SL -->
                 <col style="width: 8%;">  <!-- Date -->
                 <col style="width: 8%;">  <!-- Area -->
-                <col style="width: 10%;"> <!-- Job -->
-                <col style="width: 25%;"> <!-- Loc -->
+                <col style="width: 8%;">  <!-- Job -->
+                <col style="width: 8%;">  <!-- Tag (New) -->
+                <col style="width: 20%;"> <!-- Loc (Adjusted) -->
                 <col style="width: 8%;">  <!-- Type -->
                 <col style="width: 6%;">  <!-- Elev -->
-                <col style="width: 7%;">  <!-- Dur -->
+                <col style="width: 6%;">  <!-- Dur -->
                 <col style="width: 5%;">  <!-- L -->
                 <col style="width: 5%;">  <!-- W -->
                 <col style="width: 5%;">  <!-- H -->
@@ -257,8 +227,8 @@
             </colgroup>
             <thead>
                 <tr>
-                    <th>SL No</th><th>Date</th><th>Area</th><th>Job Type</th><th>Work Location</th>
-                    <th>Scaff Type</th><th>Elevation</th><th>Duration</th>
+                    <th>SL No</th><th>Date</th><th>Area</th><th>Job Type</th><th>Tag No.</th><th>Work Location</th>
+                    <th>Scaffolding Type</th><th>Elevation</th><th>Duration</th>
                     <th>L</th><th>W</th><th>H</th><th>NOS</th><th>Volume</th>
                 </tr>
             </thead>
@@ -294,10 +264,8 @@
     </div>
 
     <script>
-        // CONFIG
         const API_URL = "https://script.google.com/macros/s/AKfycbxQsIW3F21Xi6Tcgaygl4yOeexQuMciq6r1UWGV3VgO4dev-xwwDvR2Fb4d2SgCE5979A/exec";
 
-        // API HELPER
         async function apiRequest(action, data = {}, method = 'GET') {
             let url = `${API_URL}?action=${action}`;
             let options = { method: method };
@@ -313,18 +281,15 @@
             return response.json();
         }
 
-        // STATE
         let currentUser = null;
         let masterData = { workers: [], areas: [], departments: [] };
         let entries = []; 
         let checkInWorkers = []; 
 
-        // INIT
         window.onload = function() {
             document.getElementById('header-date').innerText = new Date().toDateString();
             document.getElementById('ci-date').valueAsDate = new Date();
             document.getElementById('co-date-display').valueAsDate = new Date();
-            
             const calcInputs = document.querySelectorAll('.vol-calc');
             calcInputs.forEach(input => input.addEventListener('input', calculateVolume));
             loadUsernames();
@@ -335,25 +300,17 @@
                 const users = await apiRequest('getUsernames');
                 const select = document.getElementById('login-user');
                 select.innerHTML = '<option value="">Select Username</option>';
-                if (users.length === 0) {
-                     const opt = document.createElement('option');
-                     opt.value = "admin"; opt.innerText = "admin (Default)"; select.appendChild(opt);
-                } else {
-                    users.forEach(u => { const opt = document.createElement('option'); opt.value = u; opt.innerText = u; select.appendChild(opt); });
-                }
+                if (users.length === 0) { const opt = document.createElement('option'); opt.value = "admin"; opt.innerText = "admin (Default)"; select.appendChild(opt); } 
+                else { users.forEach(u => { const opt = document.createElement('option'); opt.value = u; opt.innerText = u; select.appendChild(opt); }); }
             } catch (e) { console.error("Failed to load users", e); }
         }
 
-        // AUTH
         async function handleLogin() {
             const u = document.getElementById('login-user').value;
             const p = document.getElementById('login-pass').value;
             const btn = document.getElementById('btn-login');
-            const loadingMsg = document.getElementById('loading-msg');
-            
             if(!u || !p) return;
-            btn.innerText = 'Verifying...'; btn.disabled = true; loadingMsg.classList.remove('hidden');
-
+            btn.innerText = 'Verifying...'; btn.disabled = true; document.getElementById('loading-msg').classList.remove('hidden');
             try {
                 const res = await apiRequest('login', { username: u, passcode: p }, 'POST');
                 if(res.success) {
@@ -380,22 +337,18 @@
                     el.innerHTML = '<option value="">Select</option>';
                     list.forEach(item => { const opt = document.createElement('option'); opt.value = item; opt.innerText = item; el.appendChild(opt); });
                 };
-                populate('ci-area', data.areas);
-                populate('ci-dept', data.departments);
-                populate('co-area', data.areas);
+                populate('ci-area', data.areas); populate('ci-dept', data.departments); populate('co-area', data.areas);
                 renderWorkerList(data.workers);
             } catch (e) { alert("Failed to load Master Data."); }
         }
 
-        // WORKER UI
         function renderWorkerList(list) {
             const container = document.getElementById('worker-list');
             container.innerHTML = '';
             list.forEach((w, i) => {
                 const div = document.createElement('div');
                 div.className = 'flex items-center p-2 hover:bg-gray-100 rounded cursor-pointer worker-item';
-                div.innerHTML = `<input type="checkbox" id="w-${i}" class="mr-3 h-4 w-4 text-blue-600 worker-chk" value="${w.sl}" data-idx="${i}">
-                    <div><div class="font-medium text-sm text-gray-800">${w.name}</div><div class="text-xs text-gray-500">${w.designation} | ${w.empCode}</div></div>`;
+                div.innerHTML = `<input type="checkbox" id="w-${i}" class="mr-3 h-4 w-4 text-blue-600 worker-chk" value="${w.sl}" data-idx="${i}"><div><div class="font-medium text-sm text-gray-800">${w.name}</div><div class="text-xs text-gray-500">${w.designation} | ${w.empCode}</div></div>`;
                 div.onclick = (e) => { if (e.target.type !== 'checkbox') { const chk = div.querySelector('input'); chk.checked = !chk.checked; updateSelectedCount(); }};
                 container.appendChild(div);
             });
@@ -407,20 +360,16 @@
         }
         function updateSelectedCount() { document.getElementById('selected-count').innerText = document.querySelectorAll('.worker-chk:checked').length; }
 
-        // CHECK-IN
         async function submitCheckIn() {
             const date = document.getElementById('ci-date').value;
             const area = document.getElementById('ci-area').value;
             const dept = document.getElementById('ci-dept').value;
             const chks = document.querySelectorAll('.worker-chk:checked');
             if(!date || !area || !dept || chks.length === 0) { alert("Please complete all fields."); return; }
-
             const btn = document.getElementById('btn-ci-submit');
             btn.innerText = 'Submitting...'; btn.disabled = true;
-
             const selectedWorkers = Array.from(chks).map(c => masterData.workers[c.dataset.idx]);
             const payload = { date, supervisor: currentUser, area, department: dept, workers: selectedWorkers };
-
             try {
                 await apiRequest('submitCheckIn', payload, 'POST');
                 btn.innerText = 'Submit Check-In'; btn.disabled = false;
@@ -430,7 +379,6 @@
             } catch(e) { alert("Submission Failed."); btn.innerText = 'Submit Check-In'; btn.disabled = false; }
         }
 
-        // NAVIGATION
         function switchTab(tab) {
             document.getElementById('view-checkin').classList.add('hidden');
             document.getElementById('view-checkout').classList.add('hidden');
@@ -438,7 +386,6 @@
             document.getElementById('tab-checkin').classList.replace('border-blue-600', 'border-transparent');
             document.getElementById('tab-checkout').classList.replace('text-blue-600', 'text-gray-500');
             document.getElementById('tab-checkout').classList.replace('border-blue-600', 'border-transparent');
-
             if(tab === 'checkin') {
                 document.getElementById('view-checkin').classList.remove('hidden');
                 document.getElementById('tab-checkin').classList.add('text-blue-600', 'border-blue-600');
@@ -451,32 +398,23 @@
             }
         }
 
-        // DATE CHANGE LOGIC
         async function handleCheckOutDateChange() {
             const date = document.getElementById('co-date-display').value;
             const refList = document.getElementById('ref-worker-list');
             const entryList = document.getElementById('entry-list');
-            
             refList.innerHTML = '<p class="italic text-gray-400">Syncing data...</p>';
             entryList.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">Syncing logs...</div>';
-            
             try {
                 const data = await apiRequest('getDailyData', { date, supervisor: currentUser });
-                
                 checkInWorkers = data.checkIns;
                 document.getElementById('fetched-dept').value = data.department || "";
-                
-                if(checkInWorkers.length === 0) {
-                    refList.innerHTML = '<p class="italic text-gray-400">No Check-Ins found for this date.</p>';
-                } else {
-                    refList.innerHTML = checkInWorkers.map(w => `<div class="flex justify-between"><span>${w.name}</span> <span class="text-xs bg-gray-200 px-1 rounded">${w.designation}</span></div>`).join('');
-                }
+                if(checkInWorkers.length === 0) refList.innerHTML = '<p class="italic text-gray-400">No Check-Ins found for this date.</p>';
+                else refList.innerHTML = checkInWorkers.map(w => `<div class="flex justify-between"><span>${w.name}</span> <span class="text-xs bg-gray-200 px-1 rounded">${w.designation}</span></div>`).join('');
                 entries = data.logs || [];
                 renderEntryList();
             } catch(e) { console.error(e); }
         }
 
-        // MODAL
         function openEntryModal() {
             document.getElementById('co-date').value = document.getElementById('co-date-display').value;
             document.getElementById('co-dept').value = document.getElementById('fetched-dept').value;
@@ -543,13 +481,11 @@
         }
         function removeEntry(idx) { entries.splice(idx, 1); renderEntryList(); }
 
-        // SUBMIT & REPORT
         async function submitCheckOut() {
             if(entries.length === 0) return;
             document.getElementById('report-modal').classList.remove('hidden');
             document.getElementById('report-spinner').classList.remove('hidden');
             document.getElementById('report-actions').classList.add('hidden');
-
             const payload = { supervisor: currentUser, entries: entries };
             try {
                 const res = await apiRequest('submitCheckOut', payload, 'POST');
@@ -558,7 +494,6 @@
                     document.getElementById('report-actions').classList.remove('hidden');
                     const link = document.getElementById('pdf-dl-btn');
                     link.href = "data:application/pdf;base64," + res.reportUrl;
-                    
                     renderHiddenReport(payload);
                     html2canvas(document.getElementById('hidden-report-container'), { scale: 2 }).then(canvas => {
                         const jpgUrl = canvas.toDataURL('image/jpeg', 0.9);
@@ -581,7 +516,6 @@
             document.getElementById('rpt-sup-top').innerText = payload.supervisor;
             document.getElementById('rpt-eng-top').innerText = first.amnsEngName;
             document.getElementById('rpt-dept').innerText = first.department || '-';
-            document.getElementById('rpt-tag').innerText = first.tagNo || '-';
             
             const jobBody = document.querySelector('#rpt-job-table tbody');
             jobBody.innerHTML = '';
@@ -594,7 +528,7 @@
                     dur = (diff / 3600000).toFixed(1);
                 }
                 jobBody.insertAdjacentHTML('beforeend', `<tr>
-                    <td>${i+1}</td><td>${e.date}</td><td>${e.area}</td><td>${e.jobType}</td><td class="wrap-cell">${e.workLocation}</td>
+                    <td>${i+1}</td><td>${e.date}</td><td>${e.area}</td><td>${e.jobType}</td><td>${e.tagNo || '-'}</td><td class="wrap-cell">${e.workLocation}</td>
                     <td>${e.scaffoldType}</td><td>${e.elevation}</td><td>${dur}</td>
                     <td>${e.l}</td><td>${e.w}</td><td>${e.h}</td><td>${e.nos}</td><td>${e.vol}</td>
                 </tr>`);
@@ -607,15 +541,8 @@
                 const des = (w.designation || "").toLowerCase();
                 if(des.includes('scaffolder')) scafCount++;
                 if(des.includes('helper')) helpCount++;
-                manBody.insertAdjacentHTML('beforeend', `<tr>
-                    <td>${i+1}</td>
-                    <td>${w.name}</td>
-                    <td>${w.empCode}</td>
-                    <td>${w.designation}</td>
-                    <td></td>
-                </tr>`);
+                manBody.insertAdjacentHTML('beforeend', `<tr><td>${i+1}</td><td>${w.name}</td><td>${w.empCode}</td><td>${w.designation}</td><td></td></tr>`);
             });
-            
             document.getElementById('rpt-totals').innerText = `Totals (Attendance): Scaffolders: ${scafCount} | Helpers: ${helpCount} | Supervisor: 1`;
             document.getElementById('rpt-sign-sup').innerText = payload.supervisor;
             document.getElementById('rpt-sign-eng').innerText = first.amnsEngName;
